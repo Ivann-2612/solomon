@@ -1,4 +1,6 @@
-# Mystic Key → Solomon's Key Faithful Remake — Design Spec
+# Mystic Key — Faithful Classic Remake Design Spec
+
+The game keeps its own name, **Mystic Key**, everywhere (title screen, manifest, package.json, UI). No "Solomon's Key" branding anywhere in the shipped game; the reference is internal documentation only. Personal/private use.
 
 Date: 2026-06-11
 Approach: A — transform the existing codebase in place (keep Next.js/Phaser shell, replace mechanics, items, HUD, art, and levels).

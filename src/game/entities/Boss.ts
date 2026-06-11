@@ -1,4 +1,4 @@
-import Phaser from 'phaser';
+﻿import * as Phaser from 'phaser';
 import type { BossType } from '@/types';
 import type { EnemyHost } from './Enemy';
 import { Audio } from '../audio/audio';

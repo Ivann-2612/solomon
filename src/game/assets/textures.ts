@@ -1,4 +1,4 @@
-import Phaser from 'phaser';
+import * as Phaser from 'phaser';
 import { COLORS } from './palette';
 
 type PixMap = string[];
@@ -27,11 +27,21 @@ function drawMap(
   canvas.refresh();
 }
 
-/* ---------------- 8x8 entity sprites (scaled x2 -> 16x16) ---------------- */
+function makeParticle(scene: Phaser.Scene, key: string, color: string, size = 3) {
+  if (scene.textures.exists(key)) return;
+  const canvas = scene.textures.createCanvas(key, size, size);
+  if (!canvas) return;
+  const ctx = canvas.getContext();
+  ctx.fillStyle = color;
+  ctx.fillRect(0, 0, size, size);
+  canvas.refresh();
+}
+
+/* ---- Entity sprites 8x8 (scale x2 = 16x16) ---- */
 
 const DANA_IDLE = [
-  '..GGGG..',
-  '.GPPPPG.',
+  '..GYYG..',
+  '.GGGGGG.',
   '..SSSS..',
   '..SKSK..',
   '.PPPPPP.',
@@ -40,8 +50,8 @@ const DANA_IDLE = [
   '..P..P..'
 ];
 const DANA_WALK = [
-  '..GGGG..',
-  '.GPPPPG.',
+  '..GYYG..',
+  '.GGGGGG.',
   '..SSSS..',
   '..SKSK..',
   '.PPPPPP.',
@@ -50,12 +60,12 @@ const DANA_WALK = [
   '.P....P.'
 ];
 const DANA_CAST = [
-  '..GGGG..',
-  '.GPPPPG.',
+  '..GYYG..',
+  '.GGGGGG.',
   '..SSSS..',
   '..SKSK..',
-  '.PPPPPGG',
-  'GPPPPPP.',
+  '.PPPPPP.',
+  'GPPPPGGG',
   '..PPPP..',
   '..P..P..'
 ];
@@ -64,9 +74,9 @@ const IMP = [
   '.R....R.',
   '.RR..RR.',
   '..RRRR..',
-  '.RKRRKR.',
+  '.RYRRYR.',
   '..RRRR..',
-  '..RRRR..',
+  '.RRGRRR.',
   '.R.RR.R.',
   '.R....R.'
 ];
@@ -74,9 +84,9 @@ const IMP2 = [
   '.R....R.',
   '.RR..RR.',
   '..RRRR..',
-  '.RKRRKR.',
+  '.RYRRYR.',
   '..RRRR..',
-  '..RRRR..',
+  '.RRGRRR.',
   '..RRRR..',
   '.R....R.'
 ];
@@ -85,7 +95,7 @@ const BAT = [
   'M......M',
   'MM....MM',
   'MMMMMMMM',
-  '.MMKKMM.',
+  '.MMYYMM.',
   '..MMMM..',
   '..M..M..',
   '........',
@@ -93,9 +103,9 @@ const BAT = [
 ];
 const BAT2 = [
   '........',
-  'M......M',
+  '.M....M.',
   'MMMMMMMM',
-  '.MMKKMM.',
+  '.MMYYMM.',
   'MMMMMMMM',
   'M.M..M.M',
   '........',
@@ -105,18 +115,18 @@ const BAT2 = [
 const SKULL = [
   '.WWWWWW.',
   'WWWWWWWW',
-  'WKWWWWKW',
-  'WWWWWWWW',
+  'WKWwwwKW',
+  'WWwwwwWW',
   '.WWWWWW.',
   '.W.WW.W.',
-  '..WWWW..',
-  '...WW...'
+  '..OOOO..',
+  '...OO...'
 ];
 const SKULL2 = [
   '.WWWWWW.',
   'WWWWWWWW',
-  'WKWWWWKW',
-  'WWWWWWWW',
+  'WKWwwwKW',
+  'WWwwwwWW',
   '.WWWWWW.',
   '.W.WW.W.',
   '.OWWWWO.',
@@ -125,21 +135,21 @@ const SKULL2 = [
 
 const PHANTOM = [
   '..CCCC..',
+  '.CWWWWC.',
+  '.CKWWKC.',
+  '.CWWWWC.',
   '.CCCCCC.',
-  '.CKCCKC.',
-  '.CCCCCC.',
-  '.CCCCCC.',
-  '.CCCCCC.',
+  '.CcCcCC.',
   '.C.CC.C.',
   '........'
 ];
 const PHANTOM2 = [
   '..CCCC..',
+  '.CWWWWC.',
+  '.CKWWKC.',
+  '.CWWWWC.',
   '.CCCCCC.',
-  '.CKCCKC.',
-  '.CCCCCC.',
-  '.CCCCCC.',
-  '.CCCCCC.',
+  '.CcCcCC.',
   '..C..C..',
   '.C.CC.C.'
 ];
@@ -148,7 +158,7 @@ const GARGOYLE = [
   'b......b',
   'bb.bb.bb',
   '.bbbbbb.',
-  '.bKbbKb.',
+  '.bYbbYb.',
   '.bbbbbb.',
   '..bbbb..',
   '.b.bb.b.',
@@ -158,7 +168,7 @@ const GARGOYLE2 = [
   'b......b',
   '.b.bb.b.',
   '.bbbbbb.',
-  '.bKbbKb.',
+  '.bYbbYb.',
   '.bbbbbb.',
   '..bbbb..',
   '.b.bb.b.',
@@ -176,7 +186,7 @@ const FIREBALL = [
 
 const SHOT = ['.RR.', 'ROOR', 'ROOR', '.RR.'];
 
-/* ---------------- 8x8 items ---------------- */
+/* ---- Items 8x8 (scale x2 = 16x16) ---- */
 
 const KEY_SPR = [
   '.GGG....',
@@ -191,8 +201,8 @@ const KEY_SPR = [
 const COIN = [
   '..GGGG..',
   '.GYYYYG.',
-  '.GYGGYG.',
-  '.GYGGYG.',
+  '.GYoGYG.',
+  '.GYGGpG.',
   '.GYYYYG.',
   '..GGGG..'
 ];
@@ -223,8 +233,8 @@ const LIFE = [
 const TIME_SPR = [
   '..WWWW..',
   '.W....W.',
-  'W..K...W',
-  'W..KK..W',
+  'W..G...W',
+  'W..GG..W',
   '.W....W.',
   '..WWWW..'
 ];
@@ -261,18 +271,18 @@ const ORB = [
   '..CCCC..'
 ];
 
-/* ---------------- 12x12 tiles (scaled x2 -> 24x24) ---------------- */
+/* ---- Tiles 12x12 (scale x2 = 24x24) ---- */
 
 const STONE = [
   'wwwwwKwwwwww',
   'wbbbbKbbbbbw',
-  'wbbbbKbbbbbw',
+  'wbWbbKbbWbbw',
   'KKKKKKKKKKKK',
   'bbKbbbbbbKbb',
-  'bbKbbbbbbKbb',
+  'bbKbWbbbbKbb',
   'KKKKKKKKKKKK',
   'wbbbbKbbbbbw',
-  'wbbbbKbbbbbw',
+  'wbbWbKbbbbbw',
   'KKKKKKKKKKKK',
   'bKbbbbbbbbKb',
   'bKbbbbbbbbKb'
@@ -282,11 +292,11 @@ const MAGIC = [
   'PPPPPPPPPPPP',
   'PpppppppppGP',
   'PpPPPPPPPpPP',
-  'PpP.....GpPP',
-  'PpP..G..GpPP',
-  'PpP.GYG.GpPP',
-  'PpP..G..GpPP',
-  'PpP.....GpPP',
+  'PpP..WW.GpPP',
+  'PpP.WYGW.pPP',
+  'PpPWYGGYWpPP',
+  'PpP.WYGW.pPP',
+  'PpP..WW.GpPP',
   'PpPGGGGGGpPP',
   'PpppppppppPP',
   'PPPPPPPPPPPP',
@@ -328,8 +338,8 @@ const PORTAL = [
   '.M..MMMM..M.',
   'M..M....M..M',
   'M.M..MM..M.M',
-  'M.M.M..M.M.M',
-  'M.M.M..M.M.M',
+  'M.M.MYYM.M.M',
+  'M.M.MYYM.M.M',
   'M.M..MM..M.M',
   'M..M....M..M',
   '.M..MMMM..M.',
@@ -372,13 +382,24 @@ export function makeTextures(scene: Phaser.Scene) {
   drawMap(scene, 'portal', PORTAL);
   drawMap(scene, 'spark', SPARK);
 
+  // particle pixels for all effects
+  makeParticle(scene, 'px-gold',   '#ffc83c', 3);
+  makeParticle(scene, 'px-yellow', '#ffe89a', 3);
+  makeParticle(scene, 'px-orange', '#ff7f27', 3);
+  makeParticle(scene, 'px-purple', '#8c4bd9', 3);
+  makeParticle(scene, 'px-red',    '#e23b3b', 3);
+  makeParticle(scene, 'px-cyan',   '#59d9e6', 3);
+  makeParticle(scene, 'px-white',  '#f4f4f4', 3);
+  makeParticle(scene, 'px-green',  '#2ecc71', 3);
+  makeParticle(scene, 'px-magenta','#d957d9', 3);
+
   // bosses: recolored, larger versions of base monsters
   const bossPal = (over: Record<string, string>) => ({ ...COLORS, ...over });
-  drawMap(scene, 'boss-flame', SKULL, 4, bossPal({ W: COLORS.O, K: COLORS.Y }));
-  drawMap(scene, 'boss-colossus', GARGOYLE, 4, bossPal({ b: COLORS.w }));
-  drawMap(scene, 'boss-serpent', PHANTOM, 4, bossPal({ C: COLORS.P }));
-  drawMap(scene, 'boss-celestial', BAT, 4, bossPal({ M: COLORS.C }));
-  drawMap(scene, 'boss-king', IMP, 4, bossPal({ R: COLORS.p, K: COLORS.G }));
+  drawMap(scene, 'boss-flame',     SKULL,    4, bossPal({ W: COLORS.O, K: COLORS.Y }));
+  drawMap(scene, 'boss-colossus',  GARGOYLE, 4, bossPal({ b: COLORS.w }));
+  drawMap(scene, 'boss-serpent',   PHANTOM,  4, bossPal({ C: COLORS.P }));
+  drawMap(scene, 'boss-celestial', BAT,      4, bossPal({ M: COLORS.C }));
+  drawMap(scene, 'boss-king',      IMP,      4, bossPal({ R: COLORS.p, K: COLORS.G }));
 
   if (!scene.anims.exists('dana-run')) {
     scene.anims.create({

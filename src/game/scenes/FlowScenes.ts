@@ -1,4 +1,4 @@
-import Phaser from 'phaser';
+﻿import * as Phaser from 'phaser';
 import { GAME_W, GAME_H, ZODIAC, START_LIVES } from '../constants';
 import { txt, title, Menu } from '../ui/ui';
 import { Audio } from '../audio/audio';
@@ -58,7 +58,7 @@ export class WorldMapScene extends Phaser.Scene {
         );
       }
       const sealHave = slot.seals.includes(w);
-      if (sealHave) this.add.text(x + 24, y + 1, '♦', { fontSize: '10px', color: '#d957d9' }).setOrigin(0.5);
+      if (sealHave) this.add.text(x + 24, y + 1, 'â™¦', { fontSize: '10px', color: '#d957d9' }).setOrigin(0.5);
       if (unlocked) {
         box.setInteractive({ useHandCursor: true });
         box.on('pointerdown', () => {
@@ -77,7 +77,7 @@ export class WorldMapScene extends Phaser.Scene {
     for (const lid of [61, 62, 63]) {
       if (slot.secretsUnlocked.includes(lid)) {
         const t = this.add
-          .text(bx, GAME_H - 36, `★S${lid - 48}`, {
+          .text(bx, GAME_H - 36, `â˜…S${lid - 48}`, {
             fontFamily: 'monospace',
             fontSize: '10px',
             color: slot.completedStages.includes(lid) ? '#2ecc71' : '#d957d9'
@@ -89,7 +89,7 @@ export class WorldMapScene extends Phaser.Scene {
     }
     if (slot.unlockedStage >= 49) {
       const t = this.add
-        .text(GAME_W - 130, GAME_H - 36, '▲ SOLOMON CHAMBER', {
+        .text(GAME_W - 130, GAME_H - 36, 'â–² SOLOMON CHAMBER', {
           fontFamily: 'monospace',
           fontSize: '10px',
           color: '#ffc83c'
@@ -153,7 +153,7 @@ export class StageSelectScene extends Phaser.Scene {
       const done = slot.completedStages.includes(id);
       const boss = getLevel(id).boss;
       items.push({
-        label: `STAGE ${st}${boss ? ' ☠' : ''} ${done ? '✓' : open ? '' : '🔒'}`,
+        label: `STAGE ${st}${boss ? ' â˜ ' : ''} ${done ? 'âœ“' : open ? '' : 'ðŸ”’'}`,
         action: () => {
           if (open) this.scene.start('LevelIntro', { levelId: id });
         }
@@ -162,7 +162,7 @@ export class StageSelectScene extends Phaser.Scene {
     const secretId = secretLevelOfWorld(w);
     if (slot.secretsUnlocked.includes(secretId)) {
       items.push({
-        label: `★ SECRET ${slot.completedStages.includes(secretId) ? '✓' : ''}`,
+        label: `â˜… SECRET ${slot.completedStages.includes(secretId) ? 'âœ“' : ''}`,
         action: () => this.scene.start('LevelIntro', { levelId: secretId })
       });
     }
@@ -299,7 +299,7 @@ export class SecretFoundScene extends Phaser.Scene {
   }
   create(data: { text: string }) {
     const bg = this.add.rectangle(GAME_W / 2, 70, 260, 44, 0x5d2e99, 0.92).setStrokeStyle(2, 0xffc83c);
-    const t1 = txt(this, GAME_W / 2, 60, '★ SECRET FOUND ★', 12, '#ffc83c');
+    const t1 = txt(this, GAME_W / 2, 60, 'â˜… SECRET FOUND â˜…', 12, '#ffc83c');
     const t2 = txt(this, GAME_W / 2, 78, data.text ?? '', 9, '#f4f4f4');
     this.tweens.add({ targets: [bg, t1, t2], alpha: { from: 0, to: 1 }, duration: 200 });
     this.time.delayedCall(1700, () => {

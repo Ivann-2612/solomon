@@ -1,4 +1,4 @@
-import Phaser from 'phaser';
+﻿import * as Phaser from 'phaser';
 import { RUN_SPEED, JUMP_VELOCITY } from '../constants';
 import { pad, justPressed } from '../systems/input';
 import { Audio } from '../audio/audio';

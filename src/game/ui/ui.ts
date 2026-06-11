@@ -1,4 +1,4 @@
-import Phaser from 'phaser';
+﻿import * as Phaser from 'phaser';
 import { GAME_W } from '../constants';
 import { Audio } from '../audio/audio';
 

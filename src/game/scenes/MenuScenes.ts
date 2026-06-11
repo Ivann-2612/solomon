@@ -1,4 +1,4 @@
-import Phaser from 'phaser';
+﻿import * as Phaser from 'phaser';
 import { GAME_W, GAME_H, START_LIVES, MAX_CONTINUES, ZODIAC } from '../constants';
 import { txt, title, Menu, FONT } from '../ui/ui';
 import { Audio } from '../audio/audio';
@@ -74,7 +74,7 @@ export class SaveSelectScene extends Phaser.Scene {
     const slots = SaveSystem.slots();
     const items = slots.map((s, i) => ({
       label: s.exists
-        ? `SLOT ${i + 1}  ${s.completedStages.length}/64  ${s.seals.length}♦`
+        ? `SLOT ${i + 1}  ${s.completedStages.length}/64  ${s.seals.length}â™¦`
         : `SLOT ${i + 1}  - NEW GAME -`,
       action: () => {
         SaveSystem.select(i);

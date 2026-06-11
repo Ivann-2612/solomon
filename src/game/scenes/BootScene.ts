@@ -1,4 +1,4 @@
-import Phaser from 'phaser';
+﻿import * as Phaser from 'phaser';
 import { makeTextures } from '../assets/textures';
 import { START_LIVES, MAX_CONTINUES } from '../constants';
 

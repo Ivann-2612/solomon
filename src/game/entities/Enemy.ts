@@ -1,4 +1,4 @@
-import Phaser from 'phaser';
+﻿import * as Phaser from 'phaser';
 import type { EnemyType } from '@/types';
 
 export interface EnemyHost extends Phaser.Scene {

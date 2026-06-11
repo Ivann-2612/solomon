@@ -1,4 +1,4 @@
-import Phaser from 'phaser';
+﻿import * as Phaser from 'phaser';
 import { GAME_W, GAME_H, GRAVITY } from './constants';
 import { BootScene } from './scenes/BootScene';
 import {

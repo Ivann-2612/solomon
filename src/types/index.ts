@@ -28,7 +28,8 @@ export type ItemType =
   | 'sealSolomon' | 'sealConstellation' | 'signConstellation'
   | 'coin' | 'jewel' | 'diamondBlue' | 'diamondOrange'
   | 'potionX2' | 'potionX5'
-  | 'pageTime' | 'pageSpace' | 'princess' | 'key';
+  | 'pageTime' | 'pageSpace' | 'princess'
+  | 'key'; // key may also appear as a hidden item inside a block
 
 export interface ItemSpec {
   x: number;
@@ -36,8 +37,6 @@ export interface ItemSpec {
   type: ItemType;
   hidden?: boolean; // hidden item puzzle: appears when all coins collected
 }
-
-export interface HiddenItemSpec { x: number; y: number; type: ItemType; }
 
 export interface EnemySpec {
   x: number;
@@ -55,7 +54,7 @@ export interface PortalSpec {
 }
 
 export interface RoomData {
-  id: number;            // 1..49 main, 101..112 bonus, 201/202 pages, 203 princess
+  id: number;            // 1..48 zodiac, 49 final chamber, 101..112 bonus, 201/202 pages, 203 princess
   name: string;
   theme: number;         // wall theme index
   grid: number[][];      // [13][15] Tile values
@@ -63,9 +62,17 @@ export interface RoomData {
   key: { x: number; y: number };
   door: { x: number; y: number };
   items: ItemSpec[];
-  hidden: HiddenItemSpec[];
+  hidden: ItemSpec[];
   enemies: EnemySpec[];
   portals: PortalSpec[];
+}
+
+export interface RoomDef {
+  id: number; name: string; theme: number;
+  rows: string[];
+  items: ItemSpec[]; hidden: ItemSpec[];
+  enemies: EnemySpec[]; portals: PortalSpec[];
+  spawnFacing?: 1 | -1;
 }
 
 export interface LevelData {

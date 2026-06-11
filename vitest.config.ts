@@ -2,6 +2,9 @@ import { defineConfig } from 'vitest/config';
 import path from 'path';
 
 export default defineConfig({
-  test: { include: ['tests/**/*.test.ts'] },
+  test: {
+    include: ['tests/**/*.test.ts'],
+    // environment: 'node' (default) — pure logic tests only; scene tests would need jsdom
+  },
   resolve: { alias: { '@': path.resolve(__dirname, 'src') } }
 });

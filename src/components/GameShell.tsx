@@ -12,7 +12,7 @@ export default function GameShell() {
   const gameRef = useRef<Phaser.Game | null>(null);
   const [inGame, setInGame] = useState(false);
   const [isTouch, setIsTouch] = useState(false);
-  const [hostStyle, setHostStyle] = useState<React.CSSProperties>({ width: '100%', height: '100%' });
+  const [hostStyle, setHostStyle] = useState<React.CSSProperties>({});
   const keymap = useSettings((s) => s.keymap);
 
   // boot Phaser
@@ -75,9 +75,13 @@ export default function GameShell() {
       const { pixelScale } = useSettings.getState();
       if (pixelScale === 'integer') {
         const k = Math.max(1, Math.floor(Math.min(window.innerWidth / 360, window.innerHeight / 336)));
-        setHostStyle({ width: 360 * k, height: 336 * k });
+        const w = 360 * k;
+        const h = 336 * k;
+        const left = Math.round((window.innerWidth - w) / 2);
+        const top = Math.round((window.innerHeight - h) / 2);
+        setHostStyle({ width: w, height: h, position: 'absolute', left, top });
       } else {
-        setHostStyle({ width: '100%', height: '100%' });
+        setHostStyle({});
       }
       gameRef.current?.scale.refresh();
     };

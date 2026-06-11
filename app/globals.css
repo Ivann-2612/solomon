@@ -16,20 +16,26 @@ body {
 canvas {
   image-rendering: pixelated;
   image-rendering: crisp-edges;
+  display: block;
 }
 
 #game-root {
   position: fixed;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 100dvh;
   overflow: hidden;
+  background: #0a0a23;
 }
 
 #game-canvas-host {
-  display: block;
-  position: relative;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
 }
 
 .mk-btn {

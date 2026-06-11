@@ -18,16 +18,30 @@ export function txt(
 }
 
 export function title(scene: Phaser.Scene, y: number, s: string) {
+  // Drop shadow
+  scene.add.text(GAME_W / 2 + 2, y + 2, s, {
+    fontFamily: FONT, fontSize: '20px', color: '#000000'
+  }).setOrigin(0.5).setAlpha(0.6);
   const t = scene.add
     .text(GAME_W / 2, y, s, {
       fontFamily: FONT,
       fontSize: '20px',
-      color: '#ffc83c',
+      color: '#ffd84a',
       stroke: '#5d2e99',
-      strokeThickness: 4
+      strokeThickness: 3,
     })
     .setOrigin(0.5);
   return t;
+}
+
+export function panel(scene: Phaser.Scene, x: number, y: number, w: number, h: number) {
+  scene.add.rectangle(x, y, w + 4, h + 4, 0x000000, 0.8).setOrigin(0.5);
+  scene.add.rectangle(x, y, w, h, 0x0e0e28, 0.95).setOrigin(0.5);
+  const g = scene.add.graphics();
+  g.lineStyle(2, 0x8c4bd9, 0.8);
+  g.strokeRect(x - w / 2, y - h / 2, w, h);
+  g.lineStyle(1, 0xffc83c, 0.3);
+  g.strokeRect(x - w / 2 + 3, y - h / 2 + 3, w - 6, h - 6);
 }
 
 export interface MenuItem {

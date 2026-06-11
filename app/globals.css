@@ -38,6 +38,35 @@ canvas {
   bottom: 0;
 }
 
+/* --- Landscape rotation hint --- */
+#rotate-hint {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: #0c0c18;
+  color: #ffc83c;
+  font-family: monospace;
+  font-size: 16px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 8px;
+}
+#rotate-icon {
+  font-size: 48px;
+  animation: rotate-anim 2s ease-in-out infinite;
+}
+@keyframes rotate-anim {
+  0%, 100% { transform: rotate(0deg); }
+  50%       { transform: rotate(90deg); }
+}
+/* Show the hint ONLY on touch devices in portrait */
+@media (orientation: portrait) and (hover: none) and (pointer: coarse) {
+  #rotate-hint { display: flex; }
+}
+
 .mk-btn {
   position: absolute;
   display: flex;

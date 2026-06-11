@@ -26,7 +26,8 @@ import { SaveSystem } from '../systems/save';
 import { getSettings } from '@/stores/settingsStore';
 
 const tw = (gx: number) => gx * TILE + TILE / 2;
-const th = (gy: number) => HUD_H + gy * TILE + TILE / 2;
+const th = (gy: number) => gy * TILE + TILE / 2;  // HUD is at BOTTOM now
+const HUD_Y = GRID_H * TILE; // y-start of bottom HUD bar
 
 // Zodiac constellation data: stars as [x,y] fractions of playfield, lines as [from,to] indices
 const CONSTELLATIONS: { stars: [number, number][]; lines: [number, number][] }[] = [
@@ -66,8 +67,10 @@ export class GameScene extends Phaser.Scene implements EnemyHost {
   private spawnPoint = { x: 0, y: 0 };
   private hudText!: Phaser.GameObjects.Text;
   private hudRight!: Phaser.GameObjects.Text;
+  private hudLives!: Phaser.GameObjects.Container;
   private bossBar: Phaser.GameObjects.Rectangle | null = null;
   private facingArrow!: Phaser.GameObjects.Text;
+  private lastHudLives = -1;
   private secretTaken = false;
   private coinsLeft = 0;
   private levelStats = { score: 0, items: 0, secrets: 0, enemies: 0 };
@@ -109,7 +112,7 @@ export class GameScene extends Phaser.Scene implements EnemyHost {
     this.createBackground(world, hc);
     this.setupParticles();
 
-    this.physics.world.setBounds(TILE, HUD_H + TILE, (GRID_W - 2) * TILE, (GRID_H - 2) * TILE);
+    this.physics.world.setBounds(TILE, TILE, (GRID_W - 2) * TILE, (GRID_H - 2) * TILE);
     this.solids = this.physics.add.staticGroup();
     this.enemies = this.add.group();
     this.fireballs = this.add.group();
@@ -193,19 +196,19 @@ export class GameScene extends Phaser.Scene implements EnemyHost {
 
     // boss
     if (this.level.boss) {
-      this.boss = new Boss(this, GAME_W / 2, HUD_H + 3 * TILE, this.level.boss);
+      this.boss = new Boss(this, GAME_W / 2, 3 * TILE, this.level.boss);
       this.addGlow(this.boss, 0xe23b3b, 2);
       this.physics.add.overlap(this.player, this.boss, () => this.onPlayerHit());
       this.add
-        .text(GAME_W / 2, HUD_H + 8, BOSS_NAMES[this.level.boss], {
+        .text(GAME_W / 2, 8, BOSS_NAMES[this.level.boss], {
           fontFamily: 'monospace',
           fontSize: '10px',
           color: '#ff7f27'
         })
         .setOrigin(0.5, 0)
         .setDepth(20);
-      this.add.rectangle(GAME_W / 2, HUD_H + 26, 102, 8, 0x101018).setDepth(20);
-      this.bossBar = this.add.rectangle(GAME_W / 2 - 50, HUD_H + 26, 100, 6, 0xe23b3b)
+      this.add.rectangle(GAME_W / 2, 26, 102, 8, 0x101018).setDepth(20);
+      this.bossBar = this.add.rectangle(GAME_W / 2 - 50, 26, 100, 6, 0xe23b3b)
         .setOrigin(0, 0.5)
         .setDepth(21);
     }
@@ -251,17 +254,26 @@ export class GameScene extends Phaser.Scene implements EnemyHost {
       this.physics.add.overlap(this.player, spr, () => this.pickItem(spr));
     }
 
-    // HUD
-    this.add.rectangle(GAME_W / 2, HUD_H / 2, GAME_W, HUD_H, hc ? 0x000000 : 0x101030).setDepth(30);
-    // world-color accent bar at bottom of HUD
-    this.add.rectangle(GAME_W / 2, HUD_H - 1, GAME_W, 2, tint).setDepth(31).setAlpha(0.6);
-    this.hudText = this.add
-      .text(4, 5, '', { fontFamily: 'monospace', fontSize: '10px', color: '#ffc83c' })
+    // ---- Bottom HUD bar (authentic Solomon's Key style) ----
+    this.add.rectangle(GAME_W / 2, HUD_Y + HUD_H / 2, GAME_W, HUD_H, 0x000000).setDepth(30);
+    // top accent line on HUD
+    this.add.rectangle(GAME_W / 2, HUD_Y, GAME_W, 2, tint).setDepth(31);
+    // "1P" label on far left
+    this.add
+      .text(4, HUD_Y + 4, '1P', { fontFamily: 'monospace', fontSize: '10px', color: '#ffffff' })
       .setDepth(31);
+    // level name + bonus label in center
+    this.hudText = this.add
+      .text(GAME_W / 2, HUD_Y + 4, '', { fontFamily: 'monospace', fontSize: '10px', color: '#ffc83c' })
+      .setOrigin(0.5, 0)
+      .setDepth(31);
+    // score + timer on right
     this.hudRight = this.add
-      .text(GAME_W - 4, 5, '', { fontFamily: 'monospace', fontSize: '10px', color: '#f4f4f4' })
+      .text(GAME_W - 4, HUD_Y + 4, '', { fontFamily: 'monospace', fontSize: '10px', color: '#f4f4f4' })
       .setOrigin(1, 0)
       .setDepth(31);
+    // life hearts drawn dynamically in update()
+    this.hudLives = this.add.container(22, HUD_Y + 4).setDepth(32);
 
     // direction arrow above player
     this.facingArrow = this.add
@@ -289,54 +301,53 @@ export class GameScene extends Phaser.Scene implements EnemyHost {
   /* ---- background ---- */
 
   private createBackground(world: number, hc: boolean) {
-    this.add.rectangle(GAME_W / 2, GAME_H / 2, GAME_W, GAME_H, hc ? 0x000000 : 0x0a0a23);
+    const playH = GRID_H * TILE; // play area height (HUD is below)
+    const tint  = WORLD_TINTS[Math.min(world, WORLD_TINTS.length - 1)];
+
+    // Dark stone wall — background of play area
+    this.add.rectangle(GAME_W / 2, playH / 2, GAME_W, playH, hc ? 0x000000 : 0x12121e);
     if (hc) return;
 
     const gfx = this.add.graphics();
-    const tint = WORLD_TINTS[Math.min(world, WORLD_TINTS.length - 1)];
-    const r = ((tint >> 16) & 0xff) / 255;
-    const g = ((tint >> 8) & 0xff) / 255;
-    const b = (tint & 0xff) / 255;
 
-    // constellation lines
+    // Subtle stone wall texture — repeating dark rectangles (behind tiles)
+    gfx.fillStyle(0x0a0a16, 0.55);
+    for (let row = 0; row < 7; row++) {
+      for (let col = 0; col < 4; col++) {
+        const bx = col * 90 + (row % 2) * 45;
+        const by = row * 44;
+        gfx.fillRect(bx, by, 88, 42);
+      }
+    }
+
+    // Subtle world-color atmospheric glow in corners
+    gfx.fillStyle(tint, 0.04);
+    gfx.fillRect(0, 0, GAME_W, playH);
+
+    // Constellation lines (very faint, inside play area)
     const ci = world % CONSTELLATIONS.length;
     const con = CONSTELLATIONS[ci];
-    const pfW = GAME_W;
-    const pfH = GAME_H - HUD_H;
-    const pfY = HUD_H;
-    gfx.lineStyle(1, tint, 0.12);
+    gfx.lineStyle(1, tint, 0.08);
     for (const [from, to] of con.lines) {
       const [x1, y1] = con.stars[from];
       const [x2, y2] = con.stars[to];
-      gfx.lineBetween(x1 * pfW, pfY + y1 * pfH, x2 * pfW, pfY + y2 * pfH);
+      gfx.lineBetween(x1 * GAME_W, y1 * playH, x2 * GAME_W, y2 * playH);
     }
 
-    // constellation stars (bright)
+    // Constellation star dots (faint)
     for (const [sx, sy] of con.stars) {
-      this.add
-        .rectangle(sx * pfW, pfY + sy * pfH, 3, 3, tint)
-        .setAlpha(0.55);
+      this.add.rectangle(sx * GAME_W, sy * playH, 2, 2, tint).setAlpha(0.3);
     }
 
-    // random background stars with twinkling
-    const starCount = 28;
-    for (let i = 0; i < starCount; i++) {
-      const sx = ((i * 137 + this.level.id * 61) % (GAME_W - 12)) + 6;
-      const sy = HUD_H + ((i * 89 + this.level.id * 37) % (pfH - 12)) + 6;
-      const size = i % 5 === 0 ? 2 : 1;
-      const col = i % 5 === 0 ? tint : 0x3d3d7a;
-      const alpha = 0.3 + (i % 4) * 0.1;
-      const star = this.add.rectangle(sx, sy, size, size, col).setAlpha(alpha);
-      // twinkle
-      this.tweens.add({
-        targets: star,
-        alpha: alpha * 0.25,
-        duration: 800 + (i % 7) * 200,
-        yoyo: true,
-        repeat: -1,
-        delay: (i * 113) % 800
-      });
-    }
+    // Decorative side gargoyle-eye glows at top corners
+    const eyeGlow = (x: number, y: number) => {
+      const eye = this.add.rectangle(x, y, 4, 4, tint).setAlpha(0.7);
+      this.tweens.add({ targets: eye, alpha: 0.1, duration: 900 + Math.random() * 400, yoyo: true, repeat: -1 });
+    };
+    eyeGlow(TILE / 2, TILE * 1.5);
+    eyeGlow(GAME_W - TILE / 2, TILE * 1.5);
+    eyeGlow(TILE / 2, TILE * 8);
+    eyeGlow(GAME_W - TILE / 2, TILE * 8);
   }
 
   /* ---- particles ---- */
@@ -457,13 +468,13 @@ export class GameScene extends Phaser.Scene implements EnemyHost {
   private playerCell() {
     return {
       x: Math.floor(this.player.x / TILE),
-      y: Math.floor((this.player.y - HUD_H) / TILE)
+      y: Math.floor(this.player.y / TILE),
     };
   }
 
   private cellFree(gx: number, gy: number): boolean {
     if (this.gridAt(gx, gy) !== Tile.Empty) return false;
-    const rect = new Phaser.Geom.Rectangle(gx * TILE, HUD_H + gy * TILE, TILE, TILE);
+    const rect = new Phaser.Geom.Rectangle(gx * TILE, gy * TILE, TILE, TILE);
     for (const e of this.enemies.getChildren() as Enemy[]) {
       if (e.active && Phaser.Geom.Rectangle.Overlaps(rect, e.getBounds())) return false;
     }
@@ -858,16 +869,28 @@ export class GameScene extends Phaser.Scene implements EnemyHost {
       }
     }
 
-    // HUD
-    const lives = this.registry.get('lives') ?? 3;
-    const score = this.registry.get('runScore') ?? 0;
-    const fire = this.registry.get('fire') ? ' F' : '';
+    // HUD update
+    const lives = (this.registry.get('lives') as number) ?? 3;
+    const score = (this.registry.get('runScore') as number) ?? 0;
+    const fire  = this.registry.get('fire') ? ' *' : '';
+    // Center: level name + KEY indicator
     this.hudText.setText(
-      `${this.level.name}  HP${lives}${fire}${this.hasKey ? ' KEY' : ''}`
+      `${this.level.name}${fire}${this.hasKey ? '  [KEY]' : ''}`
     );
-    this.hudRight.setText(`${String(score).padStart(6, '0')}  T:${Math.max(0, this.timeLeft)}`);
-    if (this.timeLeft <= 10) this.hudRight.setColor(this.timeLeft % 2 ? '#e23b3b' : '#f4f4f4');
+    // Right: score + timer
+    const timeStr = String(Math.max(0, this.timeLeft)).padStart(3, ' ');
+    this.hudRight.setText(`${String(score).padStart(6, '0')}  T:${timeStr}`);
+    if (this.timeLeft <= 10) this.hudRight.setColor(this.timeLeft % 2 ? '#e23b3b' : '#ffc83c');
     else this.hudRight.setColor('#f4f4f4');
+    // Left: life hearts (redraw only when count changes)
+    if (lives !== this.lastHudLives) {
+      this.lastHudLives = lives;
+      this.hudLives.removeAll(true);
+      for (let i = 0; i < Math.max(0, lives); i++) {
+        const hrt = this.add.image(i * 13, 6, 'hud-heart').setOrigin(0, 0.5);
+        this.hudLives.add(hrt);
+      }
+    }
 
     // update facing arrow
     if (this.player.alive) {

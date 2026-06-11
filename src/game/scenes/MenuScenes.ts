@@ -12,12 +12,29 @@ function sceneEvent(name: string) {
 }
 
 function starfield(scene: Phaser.Scene) {
-  scene.add.rectangle(GAME_W / 2, GAME_H / 2, GAME_W, GAME_H, 0x0a0a23);
-  for (let i = 0; i < 40; i++) {
-    const x = (i * 97) % GAME_W;
-    const y = (i * 53) % GAME_H;
-    scene.add.rectangle(x, y, 2, 2, i % 5 === 0 ? 0xffc83c : 0x3d3d7a).setAlpha(0.6);
+  // Dark stone background
+  scene.add.rectangle(GAME_W / 2, GAME_H / 2, GAME_W, GAME_H, 0x0c0c18);
+  // Stone wall texture blocks
+  const gfx = scene.add.graphics();
+  gfx.fillStyle(0x080810, 0.7);
+  for (let row = 0; row < 8; row++) {
+    for (let col = 0; col < 5; col++) {
+      const bx = col * 72 + (row % 2) * 36;
+      const by = row * 42;
+      gfx.fillRect(bx, by, 70, 40);
+    }
   }
+  // Glowing stars/particles
+  for (let i = 0; i < 30; i++) {
+    const x = (i * 113 + 7) % GAME_W;
+    const y = (i * 79 + 13) % GAME_H;
+    const col = i % 6 === 0 ? 0xffc83c : i % 6 === 1 ? 0x59d9e6 : 0x3d3d7a;
+    const star = scene.add.rectangle(x, y, i % 4 === 0 ? 2 : 1, i % 4 === 0 ? 2 : 1, col).setAlpha(0.5);
+    scene.tweens.add({ targets: star, alpha: 0.1, duration: 800 + i * 60, yoyo: true, repeat: -1, delay: i * 40 });
+  }
+  // Decorative border glow
+  gfx.lineStyle(2, 0x8c4bd9, 0.4);
+  gfx.strokeRect(2, 2, GAME_W - 4, GAME_H - 4);
 }
 
 /* ---------------- Splash ---------------- */

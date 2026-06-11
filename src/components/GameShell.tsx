@@ -66,6 +66,11 @@ export default function GameShell() {
       setInGame(name === 'Game');
     };
     window.addEventListener('mk-scene', onScene);
+    // Try to lock orientation to landscape on mobile
+    try {
+      const so = (screen as any).orientation;
+      if (so && so.lock) so.lock('landscape').catch(() => {});
+    } catch { /* not supported */ }
     return () => window.removeEventListener('mk-scene', onScene);
   }, []);
 
@@ -105,6 +110,12 @@ export default function GameShell() {
     <div id="game-root">
       <div ref={hostRef} style={hostStyle} id="game-canvas-host" />
       {isTouch && <MobileControls visible={inGame} />}
+      {/* Landscape hint — only shown in CSS portrait media query */}
+      <div id="rotate-hint">
+        <div id="rotate-icon">&#8635;</div>
+        <div>Please rotate your device</div>
+        <div style={{ fontSize: '11px', marginTop: 4, opacity: 0.7 }}>Mystic Key plays in landscape</div>
+      </div>
     </div>
   );
 }

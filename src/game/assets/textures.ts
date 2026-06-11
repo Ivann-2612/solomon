@@ -37,90 +37,94 @@ function makeParticle(scene: Phaser.Scene, key: string, color: string, size = 3)
   canvas.refresh();
 }
 
-/* ---- Entity sprites 8x8 (scale x2 = 16x16) ---- */
+// ---- Entity sprites 8x8 (scale x2 = 16x16) ----
 
+// Dana – wizard with pointed hat, purple robe, gold trim
 const DANA_IDLE = [
-  '..GYYG..',
-  '.GGGGGG.',
-  '..SSSS..',
-  '..SKSK..',
-  '.PPPPPP.',
-  'GPPPPPPG',
-  '..PPPP..',
-  '..P..P..'
+  '..pppp..',  // hat tip
+  '.PPPpPP.',  // hat body
+  '.SSSSSS.',  // face
+  'KSSoSSKK',  // face detail (o=nostril/dark)
+  '.KGGPPK.',  // chest: gold trim + purple robe
+  'KPPPPPKK',  // robe body
+  '.KPPPPK.',  // lower robe
+  '..K..K..',  // legs
 ];
 const DANA_WALK = [
-  '..GYYG..',
-  '.GGGGGG.',
-  '..SSSS..',
-  '..SKSK..',
-  '.PPPPPP.',
-  'GPPPPPPG',
-  '..PPPP..',
-  '.P....P.'
+  '..pppp..',
+  '.PPPpPP.',
+  '.SSSSSS.',
+  'KSSoSSKK',
+  '.KGGPPK.',
+  'KPPPPPKK',
+  '.KPP.PK.',
+  '.KP...K.',
 ];
 const DANA_CAST = [
-  '..GYYG..',
-  '.GGGGGG.',
-  '..SSSS..',
-  '..SKSK..',
-  '.PPPPPP.',
-  'GPPPPGGG',
-  '..PPPP..',
-  '..P..P..'
+  '..pppp..',
+  '.PPPpPP.',
+  '.SSSSSS.',
+  'KSSoSSKK',
+  '.KGGPPK.',
+  'KPPPGGGG',  // arm extended with gold staff
+  '.KPPPPK.',
+  '..K..K..',
 ];
 
+// Imp – green goblin, horns, yellow eyes
 const IMP = [
-  '.R....R.',
-  '.RR..RR.',
-  '..RRRR..',
-  '.RYRRYR.',
-  '..RRRR..',
-  '.RRGRRR.',
-  '.R.RR.R.',
-  '.R....R.'
+  '.EK..KE.',
+  'EEKKEEKE',
+  'KEEEEEEK',
+  'KEeGGeEK',
+  'KEEEEEEK',
+  '.KEEEEK.',
+  'KE.EE.EK',
+  '.E....E.',
 ];
 const IMP2 = [
-  '.R....R.',
-  '.RR..RR.',
-  '..RRRR..',
-  '.RYRRYR.',
-  '..RRRR..',
-  '.RRGRRR.',
-  '..RRRR..',
-  '.R....R.'
+  '.EK..KE.',
+  'EEKKEEKE',
+  'KEEEEEEK',
+  'KEeGGeEK',
+  'KEEEEEEK',
+  '.KEEEEK.',
+  '.KE..EK.',
+  'KE....EK',
 ];
 
+// Demon Bat – magenta/pink flying enemy, spread wings
 const BAT = [
   'M......M',
-  'MM....MM',
+  'MM.MM.MM',
   'MMMMMMMM',
   '.MMYYMM.',
-  '..MMMM..',
+  '..MKKM..',
   '..M..M..',
   '........',
-  '........'
+  '........',
 ];
 const BAT2 = [
   '........',
   '.M....M.',
-  'MMMMMMMM',
+  'MM.MM.MM',
   '.MMYYMM.',
   'MMMMMMMM',
   'M.M..M.M',
   '........',
-  '........'
+  '........',
 ];
 
+// Fire Skull – white skull with orange fire
 const SKULL = [
   '.WWWWWW.',
   'WWWWWWWW',
   'WKWwwwKW',
   'WWwwwwWW',
   '.WWWWWW.',
-  '.W.WW.W.',
+  '.WOOWOW.',
   '..OOOO..',
-  '...OO...'
+  '...OO...',
 ];
 const SKULL2 = [
   '.WWWWWW.',
@@ -128,32 +132,34 @@ const SKULL2 = [
   'WKWwwwKW',
   'WWwwwwWW',
   '.WWWWWW.',
-  '.W.WW.W.',
+  '.WOOWOW.',
   '.OWWWWO.',
-  '..OWWO..'
+  '..OWWO..',
 ];
 
+// Phantom – cyan ghost, semi-transparent in code
 const PHANTOM = [
   '..CCCC..',
   '.CWWWWC.',
-  '.CKWWKC.',
+  '.CKbbKC.',
   '.CWWWWC.',
   '.CCCCCC.',
-  '.CcCcCC.',
-  '.C.CC.C.',
-  '........'
+  '.CC.CC..',
+  '.C...C..',
+  '........',
 ];
 const PHANTOM2 = [
   '..CCCC..',
   '.CWWWWC.',
-  '.CKWWKC.',
+  '.CKbbKC.',
   '.CWWWWC.',
   '.CCCCCC.',
   '.CcCcCC.',
   '..C..C..',
-  '.C.CC.C.'
+  '.C.CC.C.',
 ];
 
+// Gargoyle – stone blue boss-type, heavy
 const GARGOYLE = [
   'b......b',
   'bb.bb.bb',
@@ -162,7 +168,7 @@ const GARGOYLE = [
   '.bbbbbb.',
   '..bbbb..',
   '.b.bb.b.',
-  '.b....b.'
+  '.b....b.',
 ];
 const GARGOYLE2 = [
   'b......b',
@@ -172,22 +178,25 @@ const GARGOYLE2 = [
   '.bbbbbb.',
   '..bbbb..',
   '.b.bb.b.',
-  'b......b'
+  'b......b',
 ];
 
+// Fireball – warm orange glow
 const FIREBALL = [
-  '...GG...',
-  '..GOOG..',
-  '.GOOOOG.',
-  '.GOOYOG.',
-  '..GOOG..',
-  '...GG...'
+  '..OOO...',
+  '.OYYOO..',
+  'OYYYYOO.',
+  'OYYYYOO.',
+  '.OYYOO..',
+  '..OOO...',
 ];
 
+// Enemy shot – red bolt
 const SHOT = ['.RR.', 'ROOR', 'ROOR', '.RR.'];
 
-/* ---- Items 8x8 (scale x2 = 16x16) ---- */
+// ---- Items 8x8 (scale x2 = 16x16) ----
 
+// Key – classic golden key shape
 const KEY_SPR = [
   '.GGG....',
   'G...G...',
@@ -196,126 +205,170 @@ const KEY_SPR = [
   '..G.....',
   '..GGG...',
   '..G.....',
-  '..GG....'
+  '..GG....',
 ];
+
+// Coin – bright yellow star shape (original SK style)
 const COIN = [
-  '..GGGG..',
+  '...GG...',
+  '..GYYG..',
   '.GYYYYG.',
-  '.GYoGYG.',
-  '.GYGGpG.',
+  'GGYYYYGG',
   '.GYYYYG.',
-  '..GGGG..'
+  '..GYYG..',
+  '...GG...',
+  '........',
 ];
+
+// Gem – emerald green faceted
 const GEM = [
   '..EEEE..',
   '.EeEEeE.',
   'EEEEEEEE',
   '.EEEEEE.',
   '..EEEE..',
-  '...EE...'
+  '...EE...',
+  '........',
+  '........',
 ];
+
+// Chest – gold and brown treasure
 const CHEST = [
-  '.oooooo.',
-  'oGGGGGGo',
-  'oooooooo',
-  'oGGoGGGo',
-  'oGGGGGGo',
-  '.oooooo.'
+  '.GGGGGG.',
+  'GYYYYYYY',
+  'GGGGGGGG',
+  'GYGoGGYG',
+  'GYYYYYYY',
+  '.GGGGGG.',
+  '........',
+  '........',
 ];
+
+// Life – red heart
 const LIFE = [
   '.RR..RR.',
   'RRRRRRRR',
   'RRRRRRRR',
   '.RRRRRR.',
   '..RRRR..',
-  '...RR...'
+  '...RR...',
+  '........',
+  '........',
 ];
+
+// Time extension – hourglass
 const TIME_SPR = [
-  '..WWWW..',
-  '.W....W.',
-  'W..G...W',
-  'W..GG..W',
-  '.W....W.',
-  '..WWWW..'
+  '.WWWWWW.',
+  'WWwwwwWW',
+  '.WwwwwW.',
+  '..WGGW..',
+  '.WwwwwW.',
+  'WWwwwwWW',
+  '.WWWWWW.',
+  '........',
 ];
+
+// Fire upgrade – flame
 const FIRE_UP = [
-  '...O....',
-  '..OO....',
-  '.OOOO...',
-  '.OYYO...',
-  'OOYYOO..',
-  '.OOOO...'
+  '....O...',
+  '...OO...',
+  '..OOOO..',
+  '.OYYOO..',
+  'OOYYYYO.',
+  '.OOYYO..',
+  '..OOO...',
+  '........',
 ];
+
+// Seal fragment – purple gem with gold border
 const SEAL = [
   '..PPPP..',
   '.PGGGGP.',
-  'PG.GG.GP',
-  'PG.GG.GP',
+  'PGpPPpGP',
+  'PGpPPpGP',
   '.PGGGGP.',
-  '..PPPP..'
+  '..PPPP..',
+  '........',
+  '........',
 ];
+
+// Crown
 const CROWN = [
-  'G..G..G.',
+  'G..G..GG',
   'GG.GG.GG',
   'GGGGGGGG',
-  'GYGYGYGG',
+  'GYYYYYYY',
   'GGGGGGGG',
-  '........'
+  '........',
+  '........',
+  '........',
 ];
+
+// Orb – cyan mystic orb
 const ORB = [
   '..CCCC..',
   '.CWWWWC.',
-  'CWWCCWWC',
-  'CWWCCWWC',
+  'CWWbbWWC',
+  'CWWbbWWC',
   '.CWWWWC.',
-  '..CCCC..'
+  '..CCCC..',
+  '........',
+  '........',
 ];
 
-/* ---- Tiles 12x12 (scale x2 = 24x24) ---- */
+// ---- Tiles 12x12 (scale x2 = 24x24) ----
 
+// Stone tile — bright white face so world tint colors it vividly
+// K border = dark mortar/grout between tiles
+// W = main face (tints to world color)
+// w = shadow row at bottom for slight 3-D depth
 const STONE = [
-  'wwwwwKwwwwww',
-  'wbbbbKbbbbbw',
-  'wbWbbKbbWbbw',
   'KKKKKKKKKKKK',
-  'bbKbbbbbbKbb',
-  'bbKbWbbbbKbb',
+  'KWWWWWWWWWWK',
+  'KWWWWWWWWWWK',
+  'KWWWWWWWWWWK',
+  'KWWWWWWWWWWK',
+  'KWWWWWWWWWWK',
+  'KWWWWWWWWWWK',
+  'KWWWWWWWWWWK',
+  'KWWWWWWWWWWK',
+  'KWWWWWWWWWWK',
+  'KwwwwwwwwwwK',
   'KKKKKKKKKKKK',
-  'wbbbbKbbbbbw',
-  'wbbWbKbbbbbw',
-  'KKKKKKKKKKKK',
-  'bKbbbbbbbbKb',
-  'bKbbbbbbbbKb'
 ];
 
+// Magic block — amber/sand colored, fixed (NOT tinted), with inner rune
+// N=amber bright, n=amber dark, F=amber highlight
+// K=outline, G=gold rune, P=purple center, Y=light gold glow
 const MAGIC = [
-  'PPPPPPPPPPPP',
-  'PpppppppppGP',
-  'PpPPPPPPPpPP',
-  'PpP..WW.GpPP',
-  'PpP.WYGW.pPP',
-  'PpPWYGGYWpPP',
-  'PpP.WYGW.pPP',
-  'PpP..WW.GpPP',
-  'PpPGGGGGGpPP',
-  'PpppppppppPP',
-  'PPPPPPPPPPPP',
-  'pppppppppppp'
+  'KKKKKKKKKKKK',
+  'KFNNNNNNNnKK',
+  'KFNKKKKKNnKK',
+  'KFNKGGGGNnKK',
+  'KFNKGPPGNnKK',
+  'KFNKGPYGNnKK',
+  'KFNKGPPGNnKK',
+  'KFNKGGGGNnKK',
+  'KFNKKKKKNnKK',
+  'KFNNNNNNNnKK',
+  'KKKKKKKKKKKK',
+  'KKKKKKKKKKnK',
 ];
 
+// Door closed — ornate arch, purple/dark
 const DOOR_CLOSED = [
   '..pppppppp..',
   '.pPPPPPPPPp.',
   'pPPpppppppPp',
   'pPpDDDDDDpPp',
   'pPpDDDDDDpPp',
-  'pPpDDGGDDpPp',
-  'pPpDDGGDDpPp',
+  'pPpDKKKKDpPp',
+  'pPpDKKKKDpPp',
   'pPpDDDDDDpPp',
   'pPpDDDDDDpPp',
   'pPpDDDDDDpPp',
   'pPpDDDDDDpPp',
-  'pppppppppppp'
+  'pppppppppppp',
 ];
 const DOOR_OPEN = [
   '..pppppppp..',
@@ -329,91 +382,104 @@ const DOOR_OPEN = [
   'pGYYYYYYYYGp',
   'pGYYYYYYYYGp',
   'pGYYYYYYYYGp',
-  'pppppppppppp'
+  'pppppppppppp',
 ];
 
+// Spawn portal — rotating magenta/purple ring
 const PORTAL = [
   '....MMMM....',
   '..MM....MM..',
   '.M..MMMM..M.',
   'M..M....M..M',
   'M.M..MM..M.M',
-  'M.M.MYYM.M.M',
-  'M.M.MYYM.M.M',
+  'M.M.MPPM.M.M',
+  'M.M.MPPM.M.M',
   'M.M..MM..M.M',
   'M..M....M..M',
   '.M..MMMM..M.',
   '..MM....MM..',
-  '....MMMM....'
+  '....MMMM....',
 ];
 
+// Spark effect
 const SPARK = ['.Y.', 'YGY', '.Y.'];
+
+// Life heart icon (small, for HUD — 6x5 displayed as 12x10 with scale 2)
+const HEART_HUD = [
+  '.R.R.',
+  'RRRRR',
+  'RRRRR',
+  '.RRR.',
+  '..R..',
+];
 
 export function makeTextures(scene: Phaser.Scene) {
   drawMap(scene, 'dana-idle', DANA_IDLE);
   drawMap(scene, 'dana-walk', DANA_WALK);
   drawMap(scene, 'dana-cast', DANA_CAST);
-  drawMap(scene, 'imp-0', IMP);
-  drawMap(scene, 'imp-1', IMP2);
-  drawMap(scene, 'bat-0', BAT);
-  drawMap(scene, 'bat-1', BAT2);
-  drawMap(scene, 'skull-0', SKULL);
-  drawMap(scene, 'skull-1', SKULL2);
-  drawMap(scene, 'phantom-0', PHANTOM);
-  drawMap(scene, 'phantom-1', PHANTOM2);
-  drawMap(scene, 'gargoyle-0', GARGOYLE);
-  drawMap(scene, 'gargoyle-1', GARGOYLE2);
-  drawMap(scene, 'fireball', FIREBALL);
-  drawMap(scene, 'shot', SHOT);
-  drawMap(scene, 'item-key', KEY_SPR);
-  drawMap(scene, 'item-coin', COIN);
-  drawMap(scene, 'item-gem', GEM);
-  drawMap(scene, 'item-chest', CHEST);
-  drawMap(scene, 'item-life', LIFE);
-  drawMap(scene, 'item-time', TIME_SPR);
-  drawMap(scene, 'item-fire', FIRE_UP);
-  drawMap(scene, 'item-seal', SEAL);
-  drawMap(scene, 'item-crown', CROWN);
-  drawMap(scene, 'item-orb', ORB);
-  drawMap(scene, 'tile-stone', STONE);
-  drawMap(scene, 'tile-magic', MAGIC);
-  drawMap(scene, 'door-closed', DOOR_CLOSED);
-  drawMap(scene, 'door-open', DOOR_OPEN);
-  drawMap(scene, 'portal', PORTAL);
-  drawMap(scene, 'spark', SPARK);
+  drawMap(scene, 'imp-0',        IMP);
+  drawMap(scene, 'imp-1',        IMP2);
+  drawMap(scene, 'bat-0',        BAT);
+  drawMap(scene, 'bat-1',        BAT2);
+  drawMap(scene, 'skull-0',      SKULL);
+  drawMap(scene, 'skull-1',      SKULL2);
+  drawMap(scene, 'phantom-0',    PHANTOM);
+  drawMap(scene, 'phantom-1',    PHANTOM2);
+  drawMap(scene, 'gargoyle-0',   GARGOYLE);
+  drawMap(scene, 'gargoyle-1',   GARGOYLE2);
+  drawMap(scene, 'fireball',     FIREBALL);
+  drawMap(scene, 'shot',         SHOT);
+  drawMap(scene, 'item-key',     KEY_SPR);
+  drawMap(scene, 'item-coin',    COIN);
+  drawMap(scene, 'item-gem',     GEM);
+  drawMap(scene, 'item-chest',   CHEST);
+  drawMap(scene, 'item-life',    LIFE);
+  drawMap(scene, 'item-time',    TIME_SPR);
+  drawMap(scene, 'item-fire',    FIRE_UP);
+  drawMap(scene, 'item-seal',    SEAL);
+  drawMap(scene, 'item-crown',   CROWN);
+  drawMap(scene, 'item-orb',     ORB);
+  drawMap(scene, 'tile-stone',   STONE);
+  drawMap(scene, 'tile-magic',   MAGIC);
+  drawMap(scene, 'door-closed',  DOOR_CLOSED);
+  drawMap(scene, 'door-open',    DOOR_OPEN);
+  drawMap(scene, 'portal',       PORTAL);
+  drawMap(scene, 'spark',        SPARK);
+  drawMap(scene, 'hud-heart',    HEART_HUD, 2);
 
-  // particle pixels for all effects
-  makeParticle(scene, 'px-gold',   '#ffc83c', 3);
-  makeParticle(scene, 'px-yellow', '#ffe89a', 3);
-  makeParticle(scene, 'px-orange', '#ff7f27', 3);
-  makeParticle(scene, 'px-purple', '#8c4bd9', 3);
-  makeParticle(scene, 'px-red',    '#e23b3b', 3);
-  makeParticle(scene, 'px-cyan',   '#59d9e6', 3);
-  makeParticle(scene, 'px-white',  '#f4f4f4', 3);
-  makeParticle(scene, 'px-green',  '#2ecc71', 3);
-  makeParticle(scene, 'px-magenta','#d957d9', 3);
+  // Particle pixels
+  makeParticle(scene, 'px-gold',    '#ffc83c', 3);
+  makeParticle(scene, 'px-yellow',  '#ffe89a', 3);
+  makeParticle(scene, 'px-orange',  '#ff7f27', 3);
+  makeParticle(scene, 'px-purple',  '#8c4bd9', 3);
+  makeParticle(scene, 'px-red',     '#e23b3b', 3);
+  makeParticle(scene, 'px-cyan',    '#59d9e6', 3);
+  makeParticle(scene, 'px-white',   '#f4f4f4', 3);
+  makeParticle(scene, 'px-green',   '#2ecc71', 3);
+  makeParticle(scene, 'px-magenta', '#d957d9', 3);
+  makeParticle(scene, 'px-amber',   '#d4a848', 3);
 
-  // bosses: recolored, larger versions of base monsters
+  // Boss sprites — recolored, 4× scale (32×32)
   const bossPal = (over: Record<string, string>) => ({ ...COLORS, ...over });
   drawMap(scene, 'boss-flame',     SKULL,    4, bossPal({ W: COLORS.O, K: COLORS.Y }));
   drawMap(scene, 'boss-colossus',  GARGOYLE, 4, bossPal({ b: COLORS.w }));
   drawMap(scene, 'boss-serpent',   PHANTOM,  4, bossPal({ C: COLORS.P }));
   drawMap(scene, 'boss-celestial', BAT,      4, bossPal({ M: COLORS.C }));
-  drawMap(scene, 'boss-king',      IMP,      4, bossPal({ R: COLORS.p, K: COLORS.G }));
+  drawMap(scene, 'boss-king',      IMP,      4, bossPal({ E: '#c060ff', e: '#8020dd' }));
 
   if (!scene.anims.exists('dana-run')) {
     scene.anims.create({
       key: 'dana-run',
       frames: [{ key: 'dana-idle' }, { key: 'dana-walk' }],
       frameRate: 8,
-      repeat: -1
+      repeat: -1,
     });
     for (const e of ['imp', 'bat', 'skull', 'phantom', 'gargoyle']) {
       scene.anims.create({
         key: `${e}-anim`,
         frames: [{ key: `${e}-0` }, { key: `${e}-1` }],
         frameRate: 6,
-        repeat: -1
+        repeat: -1,
       });
     }
   }

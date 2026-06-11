@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { nextRoom, endingFor, wingsTarget, constellationOfRoom } from '@/game/levels/registry';
+import { nextRoom, endingFor, wingsTarget, constellationOfRoom, roomTitle, WINGS_ROOMS, getRoom } from '@/game/levels/registry';
+import { ROOMS } from '@/game/levels/rooms';
 
 describe('progression', () => {
   it('linear next room', () => {
@@ -32,5 +33,31 @@ describe('progression', () => {
     expect(endingFor({ princess: true, pageTime: false, pageSpace: false })).toBe('princess');
     expect(endingFor({ princess: false, pageTime: true, pageSpace: true })).toBe('pages');
     expect(endingFor({ princess: false, pageTime: false, pageSpace: false })).toBe('normal');
+  });
+
+  it('getRoom(999) throws', () => {
+    expect(() => getRoom(999)).toThrow();
+  });
+
+  it('roomTitle for known ids', () => {
+    expect(roomTitle(1)).toBe('Aries 1');
+    expect(roomTitle(49)).toBe('Mystic Chamber');
+    expect(roomTitle(101)).toBe('Aries Bonus');
+    expect(roomTitle(112)).toBe('Pisces Bonus');
+    expect(roomTitle(203)).toBe('Princess Room');
+  });
+
+  it('WINGS_ROOMS equals [7,15,23,31,39]', () => {
+    expect(WINGS_ROOMS).toEqual([7, 15, 23, 31, 39]);
+  });
+
+  it('ROOMS contains exactly the 64 expected ids', () => {
+    const expectedIds = [
+      ...Array.from({ length: 49 }, (_, i) => i + 1),   // 1..49
+      ...Array.from({ length: 12 }, (_, i) => i + 101), // 101..112
+      201, 202, 203,
+    ];
+    const roomIds = ROOMS.map((r) => r.id).sort((a, b) => a - b);
+    expect(roomIds).toEqual(expectedIds.sort((a, b) => a - b));
   });
 });

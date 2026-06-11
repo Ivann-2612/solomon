@@ -1,14 +1,15 @@
 import type { RoomData } from '@/types';
 import { ROOMS } from './rooms';
-import { ZODIAC } from '../constants';
+import { ZODIAC, constellationOfRoom as _constellationOfRoom } from '../constants';
+
+// Re-export for existing imports
+export const constellationOfRoom = _constellationOfRoom;
 
 export function getRoom(id: number): RoomData {
   const r = ROOMS.find((r) => r.id === id);
   if (!r) throw new Error(`room ${id} missing`);
   return r;
 }
-
-export const constellationOfRoom = (id: number) => Math.min(11, Math.floor((id - 1) / 4));
 
 export const roomTitle = (id: number) =>
   id <= 48

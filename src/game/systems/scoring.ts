@@ -1,6 +1,3 @@
-// NOTE: computeGDV (old export) was removed in this rewrite.
-// MenuScenes.ts imports computeGDV — that import is a KNOWN BREAKAGE handled in a later task.
-
 export const POINTS = {
   coin: 100, jewel: 500, diamond: 1000, fairy: 1000, bell: 200,
   enemyFireball: 300, key: 100, sealSolomon: 5000, sealConstellation: 2000,
@@ -9,26 +6,40 @@ export const POINTS = {
 
 export class BonusCounter {
   private v = 50000;
-  tickAmount = 10;
+  private ta = 10;
+  get tickAmount() { return this.ta; }
 
   get value() { return this.v; }
   get expired() { return this.v <= 0; }
 
-  tick() { this.v = Math.max(0, this.v - this.tickAmount); }
+  tick() { this.v = Math.max(0, this.v - this.ta); }
 
   applyMultiplier(m: 2 | 5) {
     this.v *= m;
-    this.tickAmount *= m;
+    this.ta *= m;
   }
 
   applyEdlem() {
     this.v = this.v >= 25000 ? 50000 : 25000;
-    this.tickAmount *= 2;
+    this.ta *= 2;
   }
 
   applyHourglass(blue: boolean) {
     this.v = blue ? 10000 : 5000;
   }
+}
+
+/** @deprecated legacy shim, removed in flow rework task */
+export function computeGDV(
+  slot: { completedStages: number[]; secretsFound: number; itemsCollected: number; totalScore: number },
+  bonusLeft: number
+): { levels: number; secrets: number; items: number; score: number; gdv: number; grade: string } {
+  const levels = slot.completedStages.length;
+  const secrets = slot.secretsFound;
+  const items = slot.itemsCollected;
+  const score = slot.totalScore;
+  const result = gdv(levels, secrets, items, bonusLeft, score);
+  return { levels, secrets, items, score, gdv: result.value, grade: result.grade };
 }
 
 export function gdv(

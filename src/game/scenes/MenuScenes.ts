@@ -103,7 +103,7 @@ export class SaveSelectScene extends Phaser.Scene {
     const slots = SaveSystem.slots();
     const items = slots.map((s, i) => ({
       label: s.exists
-        ? `SLOT ${i + 1}  ${s.completedStages.length}/64  [${s.seals.length}S]`
+        ? `SLOT ${i + 1}  ${s.completedStages.length}/64  [${s.solomonSeals.length + s.constellationSeals.length}S]`
         : `SLOT ${i + 1}  - NEW GAME -`,
       action: () => {
         SaveSystem.select(i);

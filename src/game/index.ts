@@ -17,7 +17,8 @@ import {
   PauseScene,
   LevelCompleteScene,
   SecretFoundScene,
-  GameOverScene
+  GameOverScene,
+  LeaderboardScene
 } from './scenes/FlowScenes';
 import { GameScene } from './scenes/GameScene';
 
@@ -55,7 +56,8 @@ export function createGame(parent: HTMLElement): Phaser.Game {
       PauseScene,
       LevelCompleteScene,
       SecretFoundScene,
-      GameOverScene
+      GameOverScene,
+      LeaderboardScene
     ]
   });
 }

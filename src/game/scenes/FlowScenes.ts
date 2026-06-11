@@ -1,4 +1,4 @@
-﻿import * as Phaser from 'phaser';
+import * as Phaser from 'phaser';
 import { GAME_W, GAME_H, ZODIAC, START_LIVES } from '../constants';
 import { txt, title, Menu } from '../ui/ui';
 import { Audio } from '../audio/audio';
@@ -44,7 +44,6 @@ export class WorldMapScene extends Phaser.Scene {
           color: unlocked ? '#ffc83c' : '#3d3d7a'
         })
         .setOrigin(0.5);
-      // stage dots
       for (let st = 1; st <= 4; st++) {
         const id = w * 4 + st;
         const done = slot.completedStages.includes(id);
@@ -58,7 +57,11 @@ export class WorldMapScene extends Phaser.Scene {
         );
       }
       const sealHave = slot.seals.includes(w);
-      if (sealHave) this.add.text(x + 24, y + 1, 'â™¦', { fontSize: '10px', color: '#d957d9' }).setOrigin(0.5);
+      if (sealHave) {
+        this.add
+          .text(x + 24, y + 1, '[S]', { fontFamily: 'monospace', fontSize: '8px', color: '#d957d9' })
+          .setOrigin(0.5);
+      }
       if (unlocked) {
         box.setInteractive({ useHandCursor: true });
         box.on('pointerdown', () => {
@@ -77,7 +80,7 @@ export class WorldMapScene extends Phaser.Scene {
     for (const lid of [61, 62, 63]) {
       if (slot.secretsUnlocked.includes(lid)) {
         const t = this.add
-          .text(bx, GAME_H - 36, `â˜…S${lid - 48}`, {
+          .text(bx, GAME_H - 36, `*S${lid - 48}`, {
             fontFamily: 'monospace',
             fontSize: '10px',
             color: slot.completedStages.includes(lid) ? '#2ecc71' : '#d957d9'
@@ -89,7 +92,7 @@ export class WorldMapScene extends Phaser.Scene {
     }
     if (slot.unlockedStage >= 49) {
       const t = this.add
-        .text(GAME_W - 130, GAME_H - 36, 'â–² SOLOMON CHAMBER', {
+        .text(GAME_W - 130, GAME_H - 36, '^ SOLOMON CHAMBER', {
           fontFamily: 'monospace',
           fontSize: '10px',
           color: '#ffc83c'
@@ -153,7 +156,7 @@ export class StageSelectScene extends Phaser.Scene {
       const done = slot.completedStages.includes(id);
       const boss = getLevel(id).boss;
       items.push({
-        label: `STAGE ${st}${boss ? ' â˜ ' : ''} ${done ? 'âœ“' : open ? '' : 'ðŸ”’'}`,
+        label: `STAGE ${st}${boss ? ' [B]' : ''}  ${done ? 'OK' : open ? '' : '[L]'}`,
         action: () => {
           if (open) this.scene.start('LevelIntro', { levelId: id });
         }
@@ -162,7 +165,7 @@ export class StageSelectScene extends Phaser.Scene {
     const secretId = secretLevelOfWorld(w);
     if (slot.secretsUnlocked.includes(secretId)) {
       items.push({
-        label: `â˜… SECRET ${slot.completedStages.includes(secretId) ? 'âœ“' : ''}`,
+        label: `* SECRET  ${slot.completedStages.includes(secretId) ? 'OK' : ''}`,
         action: () => this.scene.start('LevelIntro', { levelId: secretId })
       });
     }
@@ -180,6 +183,8 @@ export class LevelIntroScene extends Phaser.Scene {
   create(data: { levelId: number }) {
     sceneEvent('LevelIntro');
     const lvl = getLevel(data.levelId);
+    // save last played level for resume-on-refresh
+    try { localStorage.setItem('mk-last-level', String(data.levelId)); } catch { /* ignore */ }
     this.add.rectangle(GAME_W / 2, GAME_H / 2, GAME_W, GAME_H, 0x0a0a23);
     const tint = WORLD_TINTS[Math.min(lvl.world, WORLD_TINTS.length - 1)];
     this.add.rectangle(GAME_W / 2, GAME_H / 2 - 20, 220, 3, tint);
@@ -264,6 +269,9 @@ export class LevelCompleteScene extends Phaser.Scene {
     txt(this, GAME_W / 2, 130, `TIME BONUS ${s.timeBonus}`, 10);
     txt(this, GAME_W / 2, 145, `ITEMS ${s.items}  ENEMIES ${s.enemies}  SECRETS ${s.secrets}`, 9, '#9a9ab0');
 
+    // leaderboard entry
+    SaveSystem.addScore(data.levelId, levelName(data.levelId), s.score + s.timeBonus);
+
     const slot = SaveSystem.current();
     const next =
       data.levelId < 48
@@ -299,7 +307,7 @@ export class SecretFoundScene extends Phaser.Scene {
   }
   create(data: { text: string }) {
     const bg = this.add.rectangle(GAME_W / 2, 70, 260, 44, 0x5d2e99, 0.92).setStrokeStyle(2, 0xffc83c);
-    const t1 = txt(this, GAME_W / 2, 60, 'â˜… SECRET FOUND â˜…', 12, '#ffc83c');
+    const t1 = txt(this, GAME_W / 2, 60, '* SECRET FOUND *', 12, '#ffc83c');
     const t2 = txt(this, GAME_W / 2, 78, data.text ?? '', 9, '#f4f4f4');
     this.tweens.add({ targets: [bg, t1, t2], alpha: { from: 0, to: 1 }, duration: 200 });
     this.time.delayedCall(1700, () => {
@@ -346,5 +354,37 @@ export class GameOverScene extends Phaser.Scene {
       }
     });
     new Menu(this, GAME_W / 2, 150, 24, items);
+  }
+}
+
+/* ---------------- Leaderboard ---------------- */
+export class LeaderboardScene extends Phaser.Scene {
+  constructor() {
+    super('Leaderboard');
+  }
+  create(data: { back?: string }) {
+    const backScene = data?.back ?? 'MainMenu';
+    this.add.rectangle(GAME_W / 2, GAME_H / 2, GAME_W, GAME_H, 0x0a0a23);
+    title(this, 28, 'LEADERBOARD');
+    txt(this, GAME_W / 2, 52, 'TOP SCORES', 9, '#9a9ab0');
+
+    const scores = SaveSystem.getTopScores(10);
+    if (scores.length === 0) {
+      txt(this, GAME_W / 2, GAME_H / 2, 'No scores yet. Complete levels!', 9, '#3d3d7a');
+    } else {
+      scores.forEach((entry, i) => {
+        const col = i === 0 ? '#ffc83c' : i < 3 ? '#f4f4f4' : '#9a9ab0';
+        const rank = `${i + 1}.`.padEnd(4);
+        const lvl = entry.levelName.padEnd(18);
+        const sc = String(entry.score).padStart(6, '0');
+        txt(this, GAME_W / 2, 72 + i * 20, `${rank}${lvl} ${sc}`, 9, col);
+      });
+    }
+
+    txt(this, GAME_W / 2, GAME_H - 22, 'PRESS ENTER / ESC TO GO BACK', 8, '#3d3d7a');
+    const back = () => this.scene.start(backScene);
+    this.input.keyboard?.once('keydown-ENTER', back);
+    this.input.keyboard?.once('keydown-ESC', back);
+    this.input.once('pointerdown', back);
   }
 }

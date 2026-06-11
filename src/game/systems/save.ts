@@ -1,6 +1,7 @@
 import type { SaveSlot } from '@/types';
 
 const KEY = 'mystic-key-save-v1';
+const SCORES_KEY = 'mystic-key-scores-v1';
 const SLOTS = 3;
 
 function emptySlot(): SaveSlot {
@@ -24,6 +25,13 @@ function emptySlot(): SaveSlot {
 
 interface SaveFile {
   slots: SaveSlot[];
+}
+
+export interface ScoreEntry {
+  levelId: number;
+  levelName: string;
+  score: number;
+  date: string;
 }
 
 function load(): SaveFile {
@@ -68,11 +76,53 @@ export const SaveSystem = {
     const s = f.slots[active];
     s.exists = true;
     mut(s);
-    write(f); // autosave
+    write(f);
   },
   erase(slot: number) {
     const f = load();
     f.slots[slot] = emptySlot();
     write(f);
+  },
+
+  // leaderboard
+  addScore(levelId: number, lvlName: string, score: number) {
+    try {
+      const raw = localStorage.getItem(SCORES_KEY);
+      const scores: ScoreEntry[] = raw ? JSON.parse(raw) : [];
+      scores.push({
+        levelId,
+        levelName: lvlName,
+        score,
+        date: new Date().toLocaleDateString()
+      });
+      // keep top 50
+      scores.sort((a, b) => b.score - a.score);
+      scores.splice(50);
+      localStorage.setItem(SCORES_KEY, JSON.stringify(scores));
+    } catch { /* ignore */ }
+  },
+  getTopScores(n = 10): ScoreEntry[] {
+    try {
+      const raw = localStorage.getItem(SCORES_KEY);
+      if (!raw) return [];
+      const scores: ScoreEntry[] = JSON.parse(raw);
+      return scores.sort((a, b) => b.score - a.score).slice(0, n);
+    } catch {
+      return [];
+    }
+  },
+
+  // resume on page refresh
+  saveLastLevel(levelId: number) {
+    try { localStorage.setItem('mk-last-level', String(levelId)); } catch { /* ignore */ }
+  },
+  getLastLevel(): number | null {
+    try {
+      const v = localStorage.getItem('mk-last-level');
+      return v ? parseInt(v) : null;
+    } catch { return null; }
+  },
+  clearLastLevel() {
+    try { localStorage.removeItem('mk-last-level'); } catch { /* ignore */ }
   }
 };

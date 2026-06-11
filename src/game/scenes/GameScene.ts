@@ -67,6 +67,7 @@ export class GameScene extends Phaser.Scene implements EnemyHost {
   private hudText!: Phaser.GameObjects.Text;
   private hudRight!: Phaser.GameObjects.Text;
   private bossBar: Phaser.GameObjects.Rectangle | null = null;
+  private facingArrow!: Phaser.GameObjects.Text;
   private secretTaken = false;
   private coinsLeft = 0;
   private levelStats = { score: 0, items: 0, secrets: 0, enemies: 0 };
@@ -261,6 +262,12 @@ export class GameScene extends Phaser.Scene implements EnemyHost {
       .text(GAME_W - 4, 5, '', { fontFamily: 'monospace', fontSize: '10px', color: '#f4f4f4' })
       .setOrigin(1, 0)
       .setDepth(31);
+
+    // direction arrow above player
+    this.facingArrow = this.add
+      .text(0, 0, '>', { fontFamily: 'monospace', fontSize: '8px', color: '#ffc83c' })
+      .setOrigin(0.5, 1)
+      .setDepth(25);
 
     // timer
     this.timeLeft = this.level.time;
@@ -856,10 +863,20 @@ export class GameScene extends Phaser.Scene implements EnemyHost {
     const score = this.registry.get('runScore') ?? 0;
     const fire = this.registry.get('fire') ? ' F' : '';
     this.hudText.setText(
-      `${this.level.name}  ♥${lives}${fire}${this.hasKey ? ' ⚿' : ''}`
+      `${this.level.name}  HP${lives}${fire}${this.hasKey ? ' KEY' : ''}`
     );
     this.hudRight.setText(`${String(score).padStart(6, '0')}  T:${Math.max(0, this.timeLeft)}`);
     if (this.timeLeft <= 10) this.hudRight.setColor(this.timeLeft % 2 ? '#e23b3b' : '#f4f4f4');
     else this.hudRight.setColor('#f4f4f4');
+
+    // update facing arrow
+    if (this.player.alive) {
+      this.facingArrow.setText(this.player.facing > 0 ? '>' : '<');
+      this.facingArrow.setX(this.player.x + this.player.facing * 6);
+      this.facingArrow.setY(this.player.y - 10);
+      this.facingArrow.setAlpha(1);
+    } else {
+      this.facingArrow.setAlpha(0);
+    }
   }
 }

@@ -99,7 +99,7 @@ export default function GameShell() {
 
   return (
     <div id="game-root">
-      <div ref={hostRef} style={hostStyle} className="flex items-center justify-center" />
+      <div ref={hostRef} style={hostStyle} id="game-canvas-host" />
       {isTouch && <MobileControls visible={inGame} />}
     </div>
   );

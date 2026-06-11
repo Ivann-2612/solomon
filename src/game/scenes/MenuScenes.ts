@@ -53,11 +53,23 @@ export class MainMenuScene extends Phaser.Scene {
     title(this, 70, 'MYSTIC KEY');
     txt(this, GAME_W / 2, 95, 'Dana and the Twelve Seals', 9, '#9a9ab0');
     Audio.music('menu');
-    new Menu(this, GAME_W / 2, 150, 24, [
+    const menuItems: { label: string; action: () => void }[] = [
       { label: 'START GAME', action: () => this.scene.start('SaveSelect') },
+      { label: 'LEADERBOARD', action: () => this.scene.start('Leaderboard', { back: 'MainMenu' }) },
       { label: 'SETTINGS', action: () => this.scene.start('Settings', { back: 'MainMenu' }) },
       { label: 'CREDITS', action: () => this.scene.start('Credits', { victory: false }) }
-    ]);
+    ];
+    // show RESUME if there's a saved level
+    try {
+      const last = localStorage.getItem('mk-last-level');
+      if (last) {
+        menuItems.unshift({
+          label: `RESUME  LVL ${last}`,
+          action: () => this.scene.start('LevelIntro', { levelId: parseInt(last) })
+        });
+      }
+    } catch { /* ignore */ }
+    new Menu(this, GAME_W / 2, 130, 22, menuItems);
     txt(this, GAME_W / 2, GAME_H - 14, 'v1.0  ARROWS+Z/X/C/V  ENTER=OK', 8, '#3d3d7a');
   }
 }
@@ -74,7 +86,7 @@ export class SaveSelectScene extends Phaser.Scene {
     const slots = SaveSystem.slots();
     const items = slots.map((s, i) => ({
       label: s.exists
-        ? `SLOT ${i + 1}  ${s.completedStages.length}/64  ${s.seals.length}â™¦`
+        ? `SLOT ${i + 1}  ${s.completedStages.length}/64  [${s.seals.length}S]`
         : `SLOT ${i + 1}  - NEW GAME -`,
       action: () => {
         SaveSystem.select(i);

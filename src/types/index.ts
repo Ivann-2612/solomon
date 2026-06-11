@@ -1,4 +1,4 @@
-export const enum Tile {
+export enum Tile {
   Empty = 0,
   Stone = 1, // solid stone
   Magic = 2, // breakable magic block
@@ -9,18 +9,26 @@ export const enum Tile {
   Item = 7
 }
 
-export type EnemyType = 'imp' | 'bat' | 'skull' | 'phantom' | 'gargoyle';
+export type EnemyType =
+  | 'goblin'      // patrols ledges
+  | 'saramandor'  // walks, breathes fire toward player
+  | 'demonhead'   // flies straight
+  | 'ghost'       // passes through blocks
+  | 'gargoyle'    // stationary statue, shoots projectiles
+  | 'wizard';     // teleports + casts
+
 export type BossType = 'flame' | 'colossus' | 'serpent' | 'celestial' | 'king';
+
 export type ItemType =
-  | 'coin'
-  | 'gem'
-  | 'chest'
-  | 'life'
-  | 'time'
-  | 'fire'
-  | 'seal'
-  | 'crown'
-  | 'orb';
+  | 'bell' | 'fairy'
+  | 'jarBlue' | 'jarOrange' | 'jarUpgrade'
+  | 'crystalBlue' | 'crystalOrange'
+  | 'medEdlem' | 'hourglass' | 'hourglassBlue' | 'medMeltona'
+  | 'wings'
+  | 'sealSolomon' | 'sealConstellation' | 'signConstellation'
+  | 'coin' | 'jewel' | 'diamondBlue' | 'diamondOrange'
+  | 'potionX2' | 'potionX5'
+  | 'pageTime' | 'pageSpace' | 'princess' | 'key';
 
 export interface ItemSpec {
   x: number;
@@ -29,10 +37,13 @@ export interface ItemSpec {
   hidden?: boolean; // hidden item puzzle: appears when all coins collected
 }
 
+export interface HiddenItemSpec { x: number; y: number; type: ItemType; }
+
 export interface EnemySpec {
   x: number;
   y: number;
   type: EnemyType;
+  facing?: 1 | -1;
 }
 
 export interface PortalSpec {
@@ -41,6 +52,20 @@ export interface PortalSpec {
   type: EnemyType;
   max: number; // max active enemies from this portal
   cooldown: number; // ms between spawns
+}
+
+export interface RoomData {
+  id: number;            // 1..49 main, 101..112 bonus, 201/202 pages, 203 princess
+  name: string;
+  theme: number;         // wall theme index
+  grid: number[][];      // [13][15] Tile values
+  spawn: { x: number; y: number; facing: 1 | -1 };
+  key: { x: number; y: number };
+  door: { x: number; y: number };
+  items: ItemSpec[];
+  hidden: HiddenItemSpec[];
+  enemies: EnemySpec[];
+  portals: PortalSpec[];
 }
 
 export interface LevelData {
@@ -64,7 +89,11 @@ export interface SaveSlot {
   unlockedStage: number; // highest unlocked standard stage 1..48 (49 = Solomon)
   completedStages: number[];
   secretsUnlocked: number[]; // secret level ids discovered
-  seals: number[]; // world indexes whose seal was collected
+  solomonSeals: number[];
+  constellationSeals: number[];
+  fairies: number;
+  room: number;
+  wingsSkipsUsed: number[];
   crowns: number[];
   orbs: number[];
   pages: { time: boolean; space: boolean };

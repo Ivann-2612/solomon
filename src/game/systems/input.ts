@@ -5,6 +5,7 @@ export interface PadState {
   left: boolean;
   right: boolean;
   jump: boolean;
+  duck: boolean;
   create: boolean;
   destroy: boolean;
   fire: boolean;
@@ -15,6 +16,7 @@ export const pad: PadState = {
   left: false,
   right: false,
   jump: false,
+  duck: false,
   create: false,
   destroy: false,
   fire: false,
@@ -45,6 +47,7 @@ export const DEFAULT_KEYMAP: Record<Action, string[]> = {
   left: ['ArrowLeft', 'KeyA'],
   right: ['ArrowRight', 'KeyD'],
   jump: ['Space', 'KeyZ', 'ArrowUp', 'KeyW'],
+  duck: ['ArrowDown', 'KeyS'],
   create: ['KeyX', 'KeyJ'],
   destroy: ['KeyC', 'KeyK'],
   fire: ['KeyV', 'KeyL'],

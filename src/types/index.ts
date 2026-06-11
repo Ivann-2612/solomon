@@ -15,7 +15,9 @@ export type EnemyType =
   | 'demonhead'   // flies straight
   | 'ghost'       // passes through blocks
   | 'gargoyle'    // stationary statue, shoots projectiles
-  | 'wizard';     // teleports + casts
+  | 'wizard'      // teleports + casts
+  // legacy aliases (pre-task-9 names, kept until Enemy.ts rewrite)
+  | 'imp' | 'bat' | 'skull' | 'phantom';
 
 export type BossType = 'flame' | 'colossus' | 'serpent' | 'celestial' | 'king';
 
@@ -29,7 +31,9 @@ export type ItemType =
   | 'coin' | 'jewel' | 'diamondBlue' | 'diamondOrange'
   | 'potionX2' | 'potionX5'
   | 'pageTime' | 'pageSpace' | 'princess'
-  | 'key'; // key may also appear as a hidden item inside a block
+  | 'key' // key may also appear as a hidden item inside a block
+  // legacy aliases (pre-task-8 names, kept until GameScene/generator rewrite)
+  | 'gem' | 'chest' | 'life' | 'time' | 'fire' | 'seal' | 'crown' | 'orb';
 
 export interface ItemSpec {
   x: number;
@@ -89,18 +93,14 @@ export interface LevelData {
   secretExit?: number; // level id of secret stage this level can unlock
 }
 
-export type Action = 'left' | 'right' | 'jump' | 'create' | 'destroy' | 'fire' | 'pause';
+export type Action = 'left' | 'right' | 'jump' | 'duck' | 'create' | 'destroy' | 'fire' | 'pause';
 
 export interface SaveSlot {
   exists: boolean;
   unlockedStage: number; // highest unlocked standard stage 1..48 (49 = Solomon)
   completedStages: number[];
   secretsUnlocked: number[]; // secret level ids discovered
-  solomonSeals: number[];
-  constellationSeals: number[];
-  fairies: number;
-  room: number;
-  wingsSkipsUsed: number[];
+  seals: number[];            // world indices that have had their seal collected
   crowns: number[];
   orbs: number[];
   pages: { time: boolean; space: boolean };

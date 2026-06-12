@@ -626,7 +626,12 @@ export class GameScene extends Phaser.Scene implements EnemyHost {
     // Boss (boss rooms only) — spawned after regular enemies so colliders are registered last
     const btype = BOSS_ROOMS[this.room.id];
     if (btype) {
-      this.boss = new Boss(this, tw(7), th(2), btype);
+      // Find first clear cell from top-center downward for boss spawn
+      let bossSpawnY = 1;
+      for (let gy = 1; gy < GRID_H - 1; gy++) {
+        if (this.gridAt(7, gy) === Tile.Empty) { bossSpawnY = gy; break; }
+      }
+      this.boss = new Boss(this, tw(7), th(bossSpawnY), btype);
       this.bossAlive = true;
       this.physics.add.overlap(this.player, this.boss as any, () => this.onPlayerHit());
       this.physics.add.overlap(

@@ -25,6 +25,17 @@ export const COLORS: Record<string, string> = {
   // Stone-dark for BG
   Q: '#1c1c2a', // dark wall bg
   q: '#141420', // darker wall bg
+  // Task 10 — wall/theme palette
+  T: '#e08840', // tan/orange wall face (main block)
+  t: '#9c5418', // tan dark shadow
+  U: '#f8c078', // tan highlight
+  A: '#4070c0', // blue brick face
+  a: '#284884', // blue brick dark
+  L: '#9898a8', // grey brick face
+  l: '#5c5c6c', // grey brick dark
+  s: '#d8b878', // sandstone face
+  z: '#8c6c38', // sandstone dark
+  d: '#34344a', // dark stone face (theme 0)
 };
 
 // Per-world tint applied to stone tiles (pure white → this color)

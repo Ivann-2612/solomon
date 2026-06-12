@@ -1582,7 +1582,6 @@ export class GameScene extends Phaser.Scene implements EnemyHost {
         Audio.sfx("secret");
         break;
       default:
-        // unscored until item system task
         this.burst(ix, iy, this.emGold, 5);
         break;
     }

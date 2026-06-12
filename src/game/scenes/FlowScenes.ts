@@ -9,19 +9,19 @@ import { WORLD_TINTS } from '../assets/palette';
 // Local helpers bridging old level-data API to current room registry
 const levelName = roomTitle;
 
-const BOSS_NAMES: Record<string, string> = {
-  flameGuardian: 'Flame Guardian',
-  stoneColossus: 'Stone Colossus',
-  shadowSerpent: 'Shadow Serpent',
-  celestialDemon: 'Celestial Demon',
-  kingOfDarkness: 'King of Darkness',
+const BOSS_ROOM_NAMES: Record<number, string> = {
+  12: 'Flame Guardian',
+  24: 'Stone Colossus',
+  36: 'Shadow Serpent',
+  48: 'Celestial Demon',
+  49: 'King of Darkness',
 };
 
 function getLevel(id: number) {
   return {
     name: roomTitle(id),
     world: id <= 48 ? constellationOfRoom(id) : 12,
-    boss: null as string | null,
+    boss: BOSS_ROOM_NAMES[id] ?? null,
     time: 99,
   };
 }
@@ -102,7 +102,7 @@ export class LevelIntroScene extends Phaser.Scene {
     const tint = WORLD_TINTS[Math.min(lvl.world, WORLD_TINTS.length - 1)];
     this.add.rectangle(GAME_W / 2, GAME_H / 2 - 20, 220, 3, tint);
     title(this, GAME_H / 2 - 50, lvl.name.toUpperCase());
-    if (lvl.boss) txt(this, GAME_W / 2, GAME_H / 2, BOSS_NAMES[lvl.boss] + ' awaits...', 11, '#e23b3b');
+    if (lvl.boss) txt(this, GAME_W / 2, GAME_H / 2, lvl.boss + ' awaits...', 11, '#e23b3b');
     else txt(this, GAME_W / 2, GAME_H / 2, 'Find the key. Reach the door.', 10, '#9a9ab0');
     txt(
       this,

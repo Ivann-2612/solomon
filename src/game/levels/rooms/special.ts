@@ -78,35 +78,6 @@ function makeBonusRoom(id: number): RoomData {
 
 // ── PAGE OF TIME (room 201) ──────────────────────────────────────────────────
 
-export const ROOM_201: RoomData = parseRoom({
-  id: 201, name: 'Page of Time', theme: 0, spawnFacing: 1,
-  rows: [
-    '###############',
-    '#.............#',
-    '#.............#',
-    '#.....###.....#',
-    '#.....#.#.....#',
-    '#.....#.#.....#',
-    '#.....#.#.....#',
-    '#K....#.#....D#',
-    '#.....#.#.....#',
-    '#.....###.....#',
-    '#.............#',
-    '#S...........D#',
-    '###############',
-  ],
-  items: [
-    { x: 7, y: 3, type: 'pageTime' },
-    { x: 3, y: 11, type: 'coin' }, { x: 11, y: 11, type: 'coin' },
-  ],
-  hidden: [],
-  enemies: [{ x: 7, y: 5, type: 'wizard' }],
-  portals: [],
-});
-
-// Page of Time can't have two D's. Fix: use the standard single-door layout
-// and put the pageTime item in the room for player to collect.
-
 export const ROOM_201_FIXED: RoomData = parseRoom({
   id: 201, name: 'Page of Time', theme: 0, spawnFacing: 1,
   rows: [

@@ -16,6 +16,8 @@ import { getRoom, roomTitle, nextRoom, wingsTarget, endingFor } from "../levels/
 import { WORLD_TINTS } from "../assets/palette";
 import { Player } from "../entities/Player";
 import { Enemy, type EnemyHost } from "../entities/Enemy";
+import { Boss } from "../entities/Boss";
+import type { BossType } from "@/types";
 import { pad, justPressed, resetPad, setPad } from "../systems/input";
 import type { Action } from "@/types";
 import { Audio } from "../audio/audio";
@@ -289,6 +291,15 @@ const DEMO_END_FRAME = 1260; // ~21 s, then return to title
 /** Room 49 (Mystic Chamber) is the final room of the linear progression. */
 const FINAL_ROOM_ID = 49;
 
+/** Boss rooms: every 3rd world end + final Solomon chamber. */
+const BOSS_ROOMS: Record<number, BossType> = {
+  12: 'flame',
+  24: 'colossus',
+  36: 'serpent',
+  48: 'celestial',
+  49: 'king',
+};
+
 export class GameScene extends Phaser.Scene implements EnemyHost {
   player!: Player;
   private room!: RoomData;
@@ -324,6 +335,11 @@ export class GameScene extends Phaser.Scene implements EnemyHost {
   private bonus!: BonusCounter;
   private inv!: Inventory;
   private itemCtx!: ItemCtx;
+  private boss: Boss | null = null;
+  private bossAlive = false;
+  private hudBossBarBg: Phaser.GameObjects.Rectangle | null = null;
+  private hudBossBar: Phaser.GameObjects.Rectangle | null = null;
+  private hudBossName: Phaser.GameObjects.Text | null = null;
 
   // effect emitters
   private emGold!: Emitter;
@@ -352,6 +368,11 @@ export class GameScene extends Phaser.Scene implements EnemyHost {
     this.bumpCounts.clear();
     this.itemSprites = [];
     this.levelStats = { score: 0, items: 0, secrets: 0, enemies: 0 };
+    this.boss = null;
+    this.bossAlive = false;
+    this.hudBossBar = null;
+    this.hudBossBarBg = null;
+    this.hudBossName = null;
     this.demo = !!this.registry.get("demoMode");
     this.demoFrame = 0;
     this.demoIdx = 0;
@@ -602,8 +623,22 @@ export class GameScene extends Phaser.Scene implements EnemyHost {
       this.input.once("pointerdown", () => this.exitDemo());
     }
 
+    // Boss (boss rooms only) — spawned after regular enemies so colliders are registered last
+    const btype = BOSS_ROOMS[this.room.id];
+    if (btype) {
+      this.boss = new Boss(this, tw(7), th(2), btype);
+      this.bossAlive = true;
+      this.physics.add.overlap(this.player, this.boss as any, () => this.onPlayerHit());
+      this.physics.add.overlap(
+        this.fireballs,
+        this.boss as any,
+        (f, b) => this.bossFireballHit(f as Phaser.Physics.Arcade.Image, b as Boss),
+      );
+      this.createBossHud(btype);
+    }
+
     Audio.setWorld(world);
-    Audio.music("world");
+    Audio.music(btype ? "boss" : "world");
     window.dispatchEvent(new CustomEvent("mk-scene", { detail: "Game" }));
   }
 
@@ -651,6 +686,97 @@ export class GameScene extends Phaser.Scene implements EnemyHost {
         repeat: -1,
       });
     }
+  }
+
+  /* ---- Boss HUD ---- */
+
+  private createBossHud(btype: BossType) {
+    const names: Record<BossType, string> = {
+      flame: 'FLAME GUARDIAN',
+      colossus: 'STONE COLOSSUS',
+      serpent: 'SHADOW SERPENT',
+      celestial: 'CELESTIAL DEMON',
+      king: 'KING OF DARKNESS',
+    };
+    const font = { fontFamily: 'monospace', fontSize: '8px' };
+    const barW = 120;
+    const barX = GAME_W / 2 + 20;
+    const barY = 12;
+
+    this.hudBossName = this.add
+      .text(barX - 64, barY, names[btype], { ...font, color: '#e23b3b' })
+      .setScrollFactor(0)
+      .setDepth(32)
+      .setOrigin(1, 0.5);
+
+    this.hudBossBarBg = this.add
+      .rectangle(barX + barW / 2, barY, barW, 7, 0x440000)
+      .setScrollFactor(0)
+      .setDepth(32)
+      .setOrigin(0.5, 0.5);
+
+    this.hudBossBar = this.add
+      .rectangle(barX, barY, barW, 7, 0xe23b3b)
+      .setScrollFactor(0)
+      .setDepth(33)
+      .setOrigin(0, 0.5);
+  }
+
+  private bossFireballHit(f: Phaser.Physics.Arcade.Image, b: Boss) {
+    if (!f.active || !b.active || !this.bossAlive) return;
+    const power = (f.getData('power') as number) ?? 1;
+    const isSuper = f.getData('super') as boolean;
+    const trail = f.getData('trail') as Emitter | null;
+    if (!isSuper) {
+      if (trail) { trail.stop(); this.time.delayedCall(300, () => trail.destroy()); }
+      f.destroy();
+    }
+    if (b.damage(power)) {
+      this.onBossDefeated(b);
+    } else {
+      this.cameras.main.shake(60, 0.004);
+      // Update bar width immediately
+      if (this.hudBossBar && this.hudBossBarBg) {
+        const pct = Math.max(0, b.hp / b.maxHp);
+        const fullW = this.hudBossBarBg.width;
+        this.hudBossBar.setDisplaySize(fullW * pct, 7);
+      }
+    }
+  }
+
+  private onBossDefeated(b: Boss) {
+    this.bossAlive = false;
+    const bx = b.x;
+    const by = b.y;
+    this.burst(bx, by, this.emGold, 24);
+    this.burst(bx, by, this.emOrange, 16);
+    this.burst(bx, by, this.emWhite, 12);
+    this.burst(bx, by, this.emRed, 10);
+    this.cameras.main.shake(400, 0.018);
+    this.cameras.main.flash(500, 255, 200, 50, true);
+    b.destroy();
+    // Hide boss HUD
+    this.hudBossBar?.destroy();
+    this.hudBossBarBg?.destroy();
+    this.hudBossName?.destroy();
+    this.hudBossBar = null;
+    this.hudBossBarBg = null;
+    this.hudBossName = null;
+
+    this.addScore(POINTS.boss);
+    this.floatScore(bx, by, POINTS.boss);
+    this.levelStats.enemies++;
+    this.registry.inc('enemiesDefeated', 1);
+    Audio.sfx('break');
+    this.time.delayedCall(600, () => {
+      Audio.music('victory');
+      if (this.hasKey) this.openDoor();
+      else {
+        // Flash a hint: get the key!
+        this.hudMid.setColor('#ffc83c');
+        this.time.delayedCall(1200, () => this.hudMid.setColor('#ffc83c'));
+      }
+    });
   }
 
   /* ---- HUD (Task 10) ---- */
@@ -1295,7 +1421,7 @@ export class GameScene extends Phaser.Scene implements EnemyHost {
     this.burst(kx, ky, this.emWhite, 8);
     this.cameras.main.flash(150, 255, 200, 0, true);
     Audio.sfx("key");
-    this.openDoor();
+    if (!this.bossAlive) this.openDoor();
   }
 
   private openDoor() {

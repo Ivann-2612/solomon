@@ -10,7 +10,8 @@ import {
   GRID_H,
   POINTS,
   FIREBALL_SPEED,
-  FINAL_STAGE_ID
+  FINAL_STAGE_ID,
+  constellationOfRoom
 } from '../constants';
 import { getRoom, roomTitle } from '../levels/registry';
 import { WORLD_TINTS } from '../assets/palette';
@@ -23,7 +24,6 @@ import { SaveSystem } from '../systems/save';
 import { getSettings } from '@/stores/settingsStore';
 import { BonusCounter } from '../systems/scoring';
 import { Inventory } from '../systems/inventory';
-import { worldOfLevel, BOSS_NAMES, secretLevelOfWorld } from '../levels/worlds';
 
 const tw = (gx: number) => gx * TILE + TILE / 2;
 const th = (gy: number) => gy * TILE + TILE / 2;
@@ -224,18 +224,6 @@ export class GameScene extends Phaser.Scene implements EnemyHost {
       });
     }
 
-    // Boss (room id 49 = final chamber; legacy boss support via worlds.ts)
-    let bossType: string | undefined;
-    try {
-      // worldOfLevel may throw if room id > 64; catch gracefully
-      const wl = worldOfLevel ? worldOfLevel(this.room.id) : undefined;
-      if (wl !== undefined) {
-        // bossType detection via legacy worlds — only if room has boss
-        // For now: no boss unless room.id triggers it
-        void wl;
-      }
-    } catch { /* no boss */ }
-
     // Physics wiring
     this.physics.add.collider(this.player, this.solids, (_pl, tile) => {
       // Head-bump detection: player moving upward, tile above player's head
@@ -317,7 +305,7 @@ export class GameScene extends Phaser.Scene implements EnemyHost {
     });
 
     Audio.setWorld(world);
-    Audio.music(bossType ? 'boss' : 'world');
+    Audio.music('world');
     window.dispatchEvent(new CustomEvent('mk-scene', { detail: 'Game' }));
   }
 
@@ -557,12 +545,8 @@ export class GameScene extends Phaser.Scene implements EnemyHost {
   private tryCreateBlock() {
     const c = this.playerCell();
     const f = this.player.facing;
-    const holdingUp = pad.duck === false && (pad as any)['up'] === true;
-    // Diagonal target: diagonally up-front when holding ArrowUp/W (which maps to jump)
-    // Actually: when player holds the jump key AFTER landing — detect via pad.jump held
-    // More accurately per spec: "holding Up" = ArrowUp held. In our keymap, ArrowUp maps to jump.
-    // We check if jump key is currently held (pad.jump) to detect diagonal intent.
-    const diag = pad.jump;
+    // Diagonal target: diagonally up-front when holding Up
+    const diag = pad.up;
     const targets = diag
       ? [
           { x: c.x + f, y: c.y - 1 }, // diagonal up-front
@@ -589,7 +573,7 @@ export class GameScene extends Phaser.Scene implements EnemyHost {
   private tryDestroyBlock() {
     const c = this.playerCell();
     const f = this.player.facing;
-    const diag = pad.jump;
+    const diag = pad.up;
     const targets = diag
       ? [
           { x: c.x + f, y: c.y - 1 }, // diagonal up-front
@@ -828,9 +812,8 @@ export class GameScene extends Phaser.Scene implements EnemyHost {
         Audio.sfx('secret');
         break;
       default:
-        // Unknown item type: give coins
+        // unscored until item system task
         this.burst(ix, iy, this.emGold, 5);
-        this.addScore(POINTS.coin);
         break;
     }
   }
@@ -863,22 +846,12 @@ export class GameScene extends Phaser.Scene implements EnemyHost {
   private collectSeal() {
     this.addScore(POINTS.seal);
     this.levelStats.secrets++;
-    const world = this.room.theme;
+    const constellation = constellationOfRoom(this.room.id);
     SaveSystem.update((s) => {
-      if (!s.seals.includes(world)) s.seals.push(world);
+      if (!s.constellationSeals.includes(constellation)) s.constellationSeals.push(constellation);
       s.secretsFound += 1;
-      const secretId = secretLevelOfWorld(world);
-      if (!s.secretsUnlocked.includes(secretId)) s.secretsUnlocked.push(secretId);
-      for (const [need, lid] of [
-        [4, 61],
-        [8, 62],
-        [12, 63]
-      ] as const) {
-        if (s.seals.length >= need && !s.secretsUnlocked.includes(lid))
-          s.secretsUnlocked.push(lid);
-      }
-      if (s.seals.length >= 6) s.pages.time = true;
-      if (s.seals.length >= 12) {
+      if (s.constellationSeals.length >= 6) s.pages.time = true;
+      if (s.constellationSeals.length >= 12) {
         s.pages.space = true;
         s.princessUnlocked = true;
       }

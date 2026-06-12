@@ -56,7 +56,7 @@ export class WorldMapScene extends Phaser.Scene {
           done ? 0x2ecc71 : open ? 0xffc83c : 0x3d3d7a
         );
       }
-      const sealHave = slot.seals.includes(w);
+      const sealHave = slot.constellationSeals.includes(w);
       if (sealHave) {
         this.add
           .text(x + 24, y + 1, '[S]', { fontFamily: 'monospace', fontSize: '8px', color: '#d957d9' })
@@ -108,7 +108,7 @@ export class WorldMapScene extends Phaser.Scene {
       this,
       GAME_W / 2,
       GAME_H - 16,
-      `SEALS ${slot.seals.length}/12${pages.length ? '  ' + pages.join(' + ') : ''}  [ESC] MENU`,
+      `SEALS ${slot.constellationSeals.length}/12${pages.length ? '  ' + pages.join(' + ') : ''}  [ESC] MENU`,
       8,
       '#9a9ab0'
     );

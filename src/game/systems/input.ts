@@ -4,6 +4,7 @@ import type { Action } from '@/types';
 export interface PadState {
   left: boolean;
   right: boolean;
+  up: boolean;
   jump: boolean;
   duck: boolean;
   create: boolean;
@@ -15,6 +16,7 @@ export interface PadState {
 export const pad: PadState = {
   left: false,
   right: false,
+  up: false,
   jump: false,
   duck: false,
   create: false,
@@ -46,7 +48,8 @@ export function resetPad() {
 export const DEFAULT_KEYMAP: Record<Action, string[]> = {
   left: ['ArrowLeft', 'KeyA'],
   right: ['ArrowRight', 'KeyD'],
-  jump: ['Space', 'KeyZ', 'ArrowUp', 'KeyW'],
+  up: ['ArrowUp', 'KeyW'],
+  jump: ['Space', 'KeyZ'],
   duck: ['ArrowDown', 'KeyS'],
   create: ['KeyX', 'KeyJ'],
   destroy: ['KeyC', 'KeyK'],

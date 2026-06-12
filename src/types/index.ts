@@ -93,14 +93,18 @@ export interface LevelData {
   secretExit?: number; // level id of secret stage this level can unlock
 }
 
-export type Action = 'left' | 'right' | 'jump' | 'duck' | 'create' | 'destroy' | 'fire' | 'pause';
+export type Action = 'left' | 'right' | 'up' | 'jump' | 'duck' | 'create' | 'destroy' | 'fire' | 'pause';
 
 export interface SaveSlot {
   exists: boolean;
   unlockedStage: number; // highest unlocked standard stage 1..48 (49 = Solomon)
   completedStages: number[];
   secretsUnlocked: number[]; // secret level ids discovered
-  seals: number[];            // world indices that have had their seal collected
+  solomonSeals: number[];       // room ids whose Solomon's seal was collected
+  constellationSeals: number[]; // constellation indices with seal collected
+  fairies: number;
+  room: number;                 // current room (resume point)
+  wingsSkipsUsed: number;
   crowns: number[];
   orbs: number[];
   pages: { time: boolean; space: boolean };

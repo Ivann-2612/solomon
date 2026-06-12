@@ -11,7 +11,13 @@ const STATS: Record<EnemyType, { hp: number; speed: number; gravity: boolean; co
   bat: { hp: 1, speed: 38, gravity: false, collides: false },
   skull: { hp: 2, speed: 0, gravity: false, collides: false },
   phantom: { hp: 1, speed: 22, gravity: false, collides: false },
-  gargoyle: { hp: 4, speed: 18, gravity: true, collides: true }
+  gargoyle: { hp: 4, speed: 18, gravity: true, collides: true },
+  // placeholders until Enemy rewrite task (Task 9)
+  goblin: { hp: 1, speed: 28, gravity: true, collides: true },
+  saramandor: { hp: 2, speed: 24, gravity: true, collides: true },
+  demonhead: { hp: 1, speed: 38, gravity: false, collides: false },
+  ghost: { hp: 1, speed: 22, gravity: false, collides: false },
+  wizard: { hp: 2, speed: 0, gravity: false, collides: false }
 };
 
 export class Enemy extends Phaser.Physics.Arcade.Sprite {

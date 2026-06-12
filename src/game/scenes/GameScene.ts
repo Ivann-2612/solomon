@@ -1729,7 +1729,6 @@ export class GameScene extends Phaser.Scene implements EnemyHost {
     const isFinal = this.room.id === FINAL_ROOM_ID;
     const next = nextRoom(this.room.id, {
       seals: SaveSystem.current().constellationSeals.length,
-      sign: this.itemCtx.flags.sign,
       sealHere: this.itemCtx.flags.sealHere,
     });
     SaveSystem.update((s) => {

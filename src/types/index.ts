@@ -15,9 +15,7 @@ export type EnemyType =
   | 'demonhead'   // flies straight
   | 'ghost'       // passes through blocks
   | 'gargoyle'    // stationary statue, shoots projectiles
-  | 'wizard'      // teleports + casts
-  // legacy aliases (pre-task-9 names, kept until Enemy.ts rewrite)
-  | 'imp' | 'bat' | 'skull' | 'phantom';
+  | 'wizard';     // teleports + casts
 
 export type BossType = 'flame' | 'colossus' | 'serpent' | 'celestial' | 'king';
 

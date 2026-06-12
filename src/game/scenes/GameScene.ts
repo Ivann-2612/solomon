@@ -17,7 +17,6 @@ import { getRoom, roomTitle, nextRoom, wingsTarget } from '../levels/registry';
 import { WORLD_TINTS } from '../assets/palette';
 import { Player } from '../entities/Player';
 import { Enemy, type EnemyHost } from '../entities/Enemy';
-import { Boss } from '../entities/Boss';
 import { pad, justPressed, resetPad } from '../systems/input';
 import { Audio } from '../audio/audio';
 import { SaveSystem } from '../systems/save';
@@ -59,10 +58,10 @@ export class GameScene extends Phaser.Scene implements EnemyHost {
   private enemies!: Phaser.GameObjects.Group;
   private fireballs!: Phaser.GameObjects.Group;
   private shots!: Phaser.GameObjects.Group;
+  private flames!: Phaser.GameObjects.Group;
   private itemSprites: Phaser.Physics.Arcade.Sprite[] = [];
   private doorSprite!: Phaser.Physics.Arcade.Sprite;
   private keySprite: Phaser.Physics.Arcade.Sprite | null = null;
-  private boss: Boss | null = null;
   private hasKey = false;
   private doorOpen = false;
   private finishing = false;
@@ -70,7 +69,6 @@ export class GameScene extends Phaser.Scene implements EnemyHost {
   private hudText!: Phaser.GameObjects.Text;
   private hudRight!: Phaser.GameObjects.Text;
   private hudLives!: Phaser.GameObjects.Container;
-  private bossBar: Phaser.GameObjects.Rectangle | null = null;
   private facingArrow!: Phaser.GameObjects.Text;
   private lastHudLives = -1;
   private secretTaken = false;
@@ -102,9 +100,7 @@ export class GameScene extends Phaser.Scene implements EnemyHost {
     this.doorOpen = false;
     this.finishing = false;
     this.secretTaken = false;
-    this.boss = null;
     this.keySprite = null;
-    this.bossBar = null;
     this.blockSprites.clear();
     this.bumpCounts.clear();
     this.itemSprites = [];
@@ -136,6 +132,7 @@ export class GameScene extends Phaser.Scene implements EnemyHost {
     this.enemies = this.add.group();
     this.fireballs = this.add.group();
     this.shots = this.add.group();
+    this.flames = this.add.group();
 
     // Build tiles from room grid
     for (let y = 0; y < GRID_H; y++) {
@@ -244,7 +241,6 @@ export class GameScene extends Phaser.Scene implements EnemyHost {
       undefined,
       (e) => (e as Enemy).collidesWithWorld
     );
-    if (this.boss) this.physics.add.collider(this.boss, this.solids);
 
     // Instant death on enemy overlap
     this.physics.add.overlap(this.player, this.enemies, (_p, e) => {
@@ -259,16 +255,12 @@ export class GameScene extends Phaser.Scene implements EnemyHost {
     this.physics.add.collider(this.shots, this.solids, (s) =>
       (s as Phaser.Physics.Arcade.Image).destroy()
     );
+    this.physics.add.overlap(this.player, this.flames, (_p, fl) => {
+      if ((fl as Phaser.GameObjects.GameObject).active) this.onPlayerHit();
+    });
     this.physics.add.overlap(this.fireballs, this.enemies, (f, e) =>
       this.fireballHit(f as any, e as Enemy)
     );
-    if (this.boss) {
-      this.physics.add.overlap(this.fireballs, this.boss, (b, f) => {
-        const fb = (f === this.boss ? b : f) as Phaser.Physics.Arcade.Image;
-        fb.destroy();
-        this.hitBoss();
-      });
-    }
     this.physics.add.collider(this.fireballs, this.solids, (f) => {
       this.burst((f as any).x, (f as any).y, this.emOrange, 6);
       (f as Phaser.Physics.Arcade.Image).destroy();
@@ -488,7 +480,7 @@ export class GameScene extends Phaser.Scene implements EnemyHost {
     }
   }
 
-  private spawnEnemy(gx: number, gy: number, type: any, portal: string | null) {
+  private spawnEnemy(gx: number, gy: number, type: import('@/types').EnemyType, portal: string | null) {
     const e = new Enemy(this, tw(gx), th(gy), type);
     e.fromPortal = portal;
     this.enemies.add(e);
@@ -504,6 +496,54 @@ export class GameScene extends Phaser.Scene implements EnemyHost {
     s.setVelocity((dx / len) * 110, (dy / len) * 110);
     this.shots.add(s);
     this.time.delayedCall(4000, () => s.active && s.destroy());
+  }
+
+  /** wizard: slow bolt that homes toward the player (steered in update()) */
+  castHomingBolt(x: number, y: number) {
+    const s = this.physics.add.image(x, y, 'shot');
+    (s.body as Phaser.Physics.Arcade.Body).setAllowGravity(false);
+    s.setTint(0x8c4bd9);
+    s.setData('homing', true);
+    const dx = this.player.x - x;
+    const dy = this.player.y - y;
+    const len = Math.max(1, Math.hypot(dx, dy));
+    s.setVelocity((dx / len) * 55, (dy / len) * 55);
+    this.shots.add(s);
+    this.burst(x, y, this.emPurple, 6);
+    this.time.delayedCall(6000, () => s.active && s.destroy());
+  }
+
+  /** saramandor: deadly 1.5-tile flame in front of the enemy for ~1s */
+  breatheFlame(x: number, y: number, dir: 1 | -1) {
+    const fl = this.physics.add.image(x + dir * TILE * 1.1, y + 2, 'fireball');
+    (fl.body as Phaser.Physics.Arcade.Body).setAllowGravity(false);
+    fl.setFlipX(dir < 0);
+    fl.setDisplaySize(TILE * 1.5, 12);
+    (fl.body as Phaser.Physics.Arcade.Body).setSize(TILE * 1.5, 10);
+    fl.setDepth(16);
+    this.flames.add(fl);
+    this.burst(fl.x, fl.y, this.emOrange, 8);
+    Audio.sfx('fireball');
+    this.tweens.add({ targets: fl, alpha: 0.6, duration: 100, yoyo: true, repeat: 4 });
+    this.time.delayedCall(1000, () => fl.active && fl.destroy());
+  }
+
+  /** true if the grid cell is solid (stone or magic block) */
+  solidAt(gx: number, gy: number): boolean {
+    const t = this.gridAt(gx, gy);
+    return t === Tile.Stone || t === Tile.Magic;
+  }
+
+  /** random empty cell with solid ground beneath it (for wizard teleport) */
+  randomStandableCell(): { x: number; y: number } | null {
+    for (let tries = 0; tries < 30; tries++) {
+      const gx = Phaser.Math.Between(1, GRID_W - 2);
+      const gy = Phaser.Math.Between(1, GRID_H - 3);
+      if (this.gridAt(gx, gy) === Tile.Empty && this.solidAt(gx, gy + 1) && this.cellFree(gx, gy)) {
+        return { x: gx, y: gy };
+      }
+    }
+    return null;
   }
 
   private spark(x: number, y: number) {
@@ -549,7 +589,6 @@ export class GameScene extends Phaser.Scene implements EnemyHost {
     for (const e of this.enemies.getChildren() as Enemy[]) {
       if (e.active && Phaser.Geom.Rectangle.Overlaps(rect, e.getBounds())) return false;
     }
-    if (this.boss && Phaser.Geom.Rectangle.Overlaps(rect, this.boss.getBounds())) return false;
     if (Phaser.Geom.Rectangle.Overlaps(rect, this.player.getBounds())) return false;
     for (const it of this.itemSprites) {
       if (it.active && Phaser.Geom.Rectangle.Overlaps(rect, it.getBounds())) return false;
@@ -668,7 +707,8 @@ export class GameScene extends Phaser.Scene implements EnemyHost {
       if (trail) { trail.stop(); this.time.delayedCall(300, () => trail.destroy()); }
       f.destroy();
     }
-    if (e.etype === 'phantom' && power < 2) {
+    // ghosts are immune to normal fireballs — only super kills them
+    if (e.fireballImmune && !isSuper) {
       this.burst(e.x, e.y, this.emCyan, 5);
       return;
     }
@@ -691,38 +731,13 @@ export class GameScene extends Phaser.Scene implements EnemyHost {
 
   private enemyEmitter(etype: string): Emitter {
     switch (etype) {
-      case 'bat':      return this.emRed;
-      case 'skull':    return this.emWhite;
-      case 'phantom':  return this.emCyan;
-      case 'gargoyle': return this.emGreen;
-      default:         return this.emRed;
-    }
-  }
-
-  private hitBoss() {
-    if (!this.boss || this.finishing) return;
-    const power = this.inv.fireballs.length > 0 ? 2 : 1;
-    const dead = this.boss.damage(power);
-    if (this.bossBar) this.bossBar.width = Math.max(0, (this.boss.hp / this.boss.maxHp) * 100);
-    this.cameras.main.shake(80, 0.006);
-    if (dead) {
-      const b = this.boss;
-      this.boss = null;
-      for (let i = 0; i < 14; i++) {
-        this.time.delayedCall(i * 70, () => {
-          this.burst(b.x + (Math.random() - 0.5) * 40, b.y + (Math.random() - 0.5) * 40, this.emOrange, 8);
-          this.burst(b.x + (Math.random() - 0.5) * 40, b.y + (Math.random() - 0.5) * 40, this.emRed, 5);
-        });
-      }
-      this.tweens.add({ targets: b, alpha: 0, duration: 900, onComplete: () => b.destroy() });
-      this.cameras.main.shake(300, 0.01);
-      this.cameras.main.flash(400, 255, 127, 0, true);
-      this.addScore(POINTS.boss);
-      this.floatScore(b.x, b.y - 16, POINTS.boss);
-      this.levelStats.enemies++;
-      this.hasKey = true;
-      this.openDoor();
-      Audio.sfx('secret');
+      case 'goblin':     return this.emGreen;
+      case 'saramandor': return this.emOrange;
+      case 'demonhead':  return this.emRed;
+      case 'ghost':      return this.emCyan;
+      case 'gargoyle':   return this.emGreen;
+      case 'wizard':     return this.emPurple;
+      default:           return this.emRed;
     }
   }
 
@@ -809,6 +824,10 @@ export class GameScene extends Phaser.Scene implements EnemyHost {
         Audio.sfx('chest');
         break;
       case 'medMeltona':
+        this.burst(ix, iy, this.emPurple, 10);
+        Audio.sfx('secret');
+        this.meltEnemies();
+        break;
       case 'signConstellation':
         this.burst(ix, iy, this.emPurple, 10);
         Audio.sfx('secret');
@@ -890,6 +909,21 @@ export class GameScene extends Phaser.Scene implements EnemyHost {
         this.burst(ix, iy, this.emGold, 5);
         break;
     }
+  }
+
+  /** medMeltona: kills all active saramandors and demonheads on screen */
+  private meltEnemies() {
+    for (const e of this.enemies.getChildren() as Enemy[]) {
+      if (!e.active) continue;
+      if (e.etype !== 'saramandor' && e.etype !== 'demonhead') continue;
+      this.burst(e.x, e.y, this.enemyEmitter(e.etype), 12);
+      this.burst(e.x, e.y, this.emOrange, 5);
+      e.destroy();
+      this.addScore(POINTS.enemy);
+      this.levelStats.enemies++;
+      this.registry.inc('enemiesDefeated', 1);
+    }
+    this.cameras.main.flash(200, 140, 75, 217, true);
   }
 
   /** Bell pickup: a fairy emerges from the door and drifts slowly around the room. */
@@ -1055,6 +1089,19 @@ export class GameScene extends Phaser.Scene implements EnemyHost {
       Audio.sfx('pause');
       this.scene.launch('Pause', { levelId: this.room.id });
       this.scene.pause();
+    }
+
+    // Homing bolts steer toward the player
+    if (this.player.alive) {
+      for (const s of this.shots.getChildren() as Phaser.Physics.Arcade.Image[]) {
+        if (!s.active || !s.getData('homing')) continue;
+        const dx = this.player.x - s.x;
+        const dy = this.player.y - s.y;
+        const len = Math.max(1, Math.hypot(dx, dy));
+        const body = s.body as Phaser.Physics.Arcade.Body;
+        body.velocity.x = Phaser.Math.Linear(body.velocity.x, (dx / len) * 55, 0.04);
+        body.velocity.y = Phaser.Math.Linear(body.velocity.y, (dy / len) * 55, 0.04);
+      }
     }
 
     // Fireball range limit (super fireballs have unlimited range — large range value)

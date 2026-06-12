@@ -152,10 +152,10 @@ function buildStandard(id: number, attempt: number): LevelData | null {
   }
 
   // enemies, scaled by difficulty
-  const pool: EnemyType[] = ['imp'];
-  if (world >= 1) pool.push('bat');
-  if (world >= 3) pool.push('skull');
-  if (world >= 5) pool.push('phantom');
+  const pool: EnemyType[] = ['goblin'];
+  if (world >= 1) pool.push('demonhead');
+  if (world >= 3) pool.push('saramandor');
+  if (world >= 5) pool.push('ghost');
   if (world >= 8) pool.push('gargoyle');
   const enemyCount = Math.min(5, 1 + Math.floor(world / 2) + Math.floor(stage / 3));
   const enemies: EnemySpec[] = [];
@@ -232,7 +232,7 @@ function buildBossArena(id: number): LevelData {
     enemies: [],
     portals:
       id === FINAL_STAGE_ID
-        ? [{ x: 3, y: FLOOR_Y - 1, type: 'phantom', max: 1, cooldown: 9000 }]
+        ? [{ x: 3, y: FLOOR_Y - 1, type: 'ghost', max: 1, cooldown: 9000 }]
         : [],
     time: id === FINAL_STAGE_ID ? 180 : 120,
     boss: bossOfLevel(id)
@@ -290,7 +290,7 @@ function buildSecret(id: number, attempt: number): LevelData | null {
   for (let i = 0; i < n; i++) {
     if (!stand.length) break;
     const c = stand.splice(Math.floor(rng() * stand.length), 1)[0];
-    enemies.push({ x: c.x, y: c.y, type: pick(rng, ['phantom', 'bat', 'skull'] as const) });
+    enemies.push({ x: c.x, y: c.y, type: pick(rng, ['ghost', 'demonhead', 'wizard'] as const) });
   }
 
   if (!validateGrid(g).ok) return null;
@@ -324,7 +324,7 @@ function fallbackLevel(id: number): LevelData {
     name: levelName(id),
     grid: g,
     items: [{ x: 4, y: FLOOR_Y - 1, type: 'coin' }],
-    enemies: [{ x: 10, y: FLOOR_Y - 1, type: 'imp' }],
+    enemies: [{ x: 10, y: FLOOR_Y - 1, type: 'goblin' }],
     portals: [],
     time: 90
   };

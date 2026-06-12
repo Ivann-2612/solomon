@@ -427,6 +427,17 @@ export function makeTextures(scene: Phaser.Scene) {
   drawMap(scene, 'phantom-1',    PHANTOM2);
   drawMap(scene, 'gargoyle-0',   GARGOYLE);
   drawMap(scene, 'gargoyle-1',   GARGOYLE2);
+  // SK enemy set — placeholder reskins until Task 10 visuals
+  drawMap(scene, 'goblin-0',     IMP);
+  drawMap(scene, 'goblin-1',     IMP2);
+  drawMap(scene, 'saramandor-0', IMP,    2, { ...COLORS, E: '#ff7f27', e: '#cc5500' });
+  drawMap(scene, 'saramandor-1', IMP2,   2, { ...COLORS, E: '#ff7f27', e: '#cc5500' });
+  drawMap(scene, 'demonhead-0',  BAT);
+  drawMap(scene, 'demonhead-1',  BAT2);
+  drawMap(scene, 'ghost-0',      PHANTOM);
+  drawMap(scene, 'ghost-1',      PHANTOM2);
+  drawMap(scene, 'wizard-0',     SKULL,  2, { ...COLORS, W: '#8c4bd9' });
+  drawMap(scene, 'wizard-1',     SKULL2, 2, { ...COLORS, W: '#8c4bd9' });
   drawMap(scene, 'fireball',     FIREBALL);
   drawMap(scene, 'shot',         SHOT);
   drawMap(scene, 'item-key',     KEY_SPR);
@@ -474,7 +485,7 @@ export function makeTextures(scene: Phaser.Scene) {
       frameRate: 8,
       repeat: -1,
     });
-    for (const e of ['imp', 'bat', 'skull', 'phantom', 'gargoyle']) {
+    for (const e of ['goblin', 'saramandor', 'demonhead', 'ghost', 'gargoyle', 'wizard']) {
       scene.anims.create({
         key: `${e}-anim`,
         frames: [{ key: `${e}-0` }, { key: `${e}-1` }],

@@ -1,47 +1,34 @@
-// Real room layouts for worlds 1-3 (ids 1-12); placeholder for the rest.
 import { parseRoom } from '../parseRoom';
 import type { RoomData } from '@/types';
 import { constellationOfRoom } from '../../constants';
 import { WORLD_ROOMS_1_TO_3 } from './worlds1to3';
+import { WORLD_ROOMS_4_TO_6 } from './worlds4to9';
+import { WORLD_ROOMS_10_TO_12 } from './worlds10to12';
+import { SPECIAL_ROOMS } from './special';
 
 function makeRows(): string[] {
-  // 13 rows x 15 cols
   const rows: string[] = [];
-
-  // row 0: full stone border
   rows.push('###############');
-
-  // rows 1-10: interior
   for (let r = 1; r <= 10; r++) {
     let row = '#';
     for (let c = 1; c <= 13; c++) {
-      if (r === 8 && c === 7) {
-        row += 'K'; // key on top of pillar
-      } else if ((r === 9 || r === 10) && c === 7) {
-        row += 'B'; // magic block pillar
-      } else {
-        row += '.';
-      }
+      if (r === 8 && c === 7) row += 'K';
+      else if ((r === 9 || r === 10) && c === 7) row += 'B';
+      else row += '.';
     }
     row += '#';
     rows.push(row);
   }
-
-  // row 11: floor with S at col 1, D at col 13
-  // S = spawn, D = door, rest = Stone
   rows.push('#S...........D#');
-
-  // row 12: bottom border
   rows.push('###############');
-
   return rows;
 }
 
 const PLACEHOLDER_ROWS = makeRows();
 
 const ALL_IDS: number[] = [
-  ...Array.from({ length: 49 }, (_, i) => i + 1),     // 1..49
-  ...Array.from({ length: 12 }, (_, i) => i + 101),   // 101..112
+  ...Array.from({ length: 49 }, (_, i) => i + 1),
+  ...Array.from({ length: 12 }, (_, i) => i + 101),
   201, 202, 203,
 ];
 
@@ -50,10 +37,17 @@ function themeForId(id: number): number {
   return 0;
 }
 
-const REAL_IDS = new Set(WORLD_ROOMS_1_TO_3.map((r) => r.id));
+const ALL_REAL: RoomData[] = [
+  ...WORLD_ROOMS_1_TO_3,
+  ...WORLD_ROOMS_4_TO_6,
+  ...WORLD_ROOMS_10_TO_12,
+  ...SPECIAL_ROOMS,
+];
+
+const REAL_MAP = new Map<number, RoomData>(ALL_REAL.map((r) => [r.id, r]));
 
 export const ROOMS: RoomData[] = ALL_IDS.map((id) => {
-  const real = WORLD_ROOMS_1_TO_3.find((r) => r.id === id);
+  const real = REAL_MAP.get(id);
   if (real) return real;
   return parseRoom({
     id,
@@ -67,6 +61,3 @@ export const ROOMS: RoomData[] = ALL_IDS.map((id) => {
     spawnFacing: 1,
   });
 });
-
-// Suppress unused-variable warning
-void REAL_IDS;

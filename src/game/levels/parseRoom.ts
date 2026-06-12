@@ -2,7 +2,7 @@ import { Tile } from '@/types';
 import type { RoomData, RoomDef } from '@/types';
 import { GRID_W, GRID_H } from '../constants';
 
-const CH: Record<string, Tile> = { '#': Tile.Stone, B: Tile.Magic, '.': Tile.Empty, S: Tile.Empty, K: Tile.Empty, D: Tile.Empty };
+const CH: Record<string, Tile> = { '#': Tile.Stone, B: Tile.Magic, '.': Tile.Empty, S: Tile.Empty, K: Tile.Empty, D: Tile.Empty, T: Tile.Secret };
 
 export function parseRoom(def: RoomDef): RoomData {
   if (def.rows.length !== GRID_H) throw new Error(`room ${def.id}: ${def.rows.length} rows, want ${GRID_H}`);

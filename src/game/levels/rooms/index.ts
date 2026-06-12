@@ -1,7 +1,8 @@
-// Placeholder rooms (15x13 grid). Real layouts transcribed in a later task.
+// Real room layouts for worlds 1-3 (ids 1-12); placeholder for the rest.
 import { parseRoom } from '../parseRoom';
 import type { RoomData } from '@/types';
 import { constellationOfRoom } from '../../constants';
+import { WORLD_ROOMS_1_TO_3 } from './worlds1to3';
 
 function makeRows(): string[] {
   // 13 rows x 15 cols
@@ -49,8 +50,12 @@ function themeForId(id: number): number {
   return 0;
 }
 
-export const ROOMS: RoomData[] = ALL_IDS.map((id) =>
-  parseRoom({
+const REAL_IDS = new Set(WORLD_ROOMS_1_TO_3.map((r) => r.id));
+
+export const ROOMS: RoomData[] = ALL_IDS.map((id) => {
+  const real = WORLD_ROOMS_1_TO_3.find((r) => r.id === id);
+  if (real) return real;
+  return parseRoom({
     id,
     name: `Room ${id}`,
     theme: themeForId(id),
@@ -60,5 +65,8 @@ export const ROOMS: RoomData[] = ALL_IDS.map((id) =>
     enemies: [],
     portals: [],
     spawnFacing: 1,
-  })
-);
+  });
+});
+
+// Suppress unused-variable warning
+void REAL_IDS;

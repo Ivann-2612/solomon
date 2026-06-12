@@ -10,14 +10,14 @@ import {
   GRID_H,
   POINTS,
   FIREBALL_SPEED,
-  FINAL_STAGE_ID,
   constellationOfRoom,
 } from "../constants";
-import { getRoom, roomTitle, nextRoom, wingsTarget } from "../levels/registry";
+import { getRoom, roomTitle, nextRoom, wingsTarget, endingFor } from "../levels/registry";
 import { WORLD_TINTS } from "../assets/palette";
 import { Player } from "../entities/Player";
 import { Enemy, type EnemyHost } from "../entities/Enemy";
-import { pad, justPressed, resetPad } from "../systems/input";
+import { pad, justPressed, resetPad, setPad } from "../systems/input";
+import type { Action } from "@/types";
 import { Audio } from "../audio/audio";
 import { SaveSystem } from "../systems/save";
 import { getSettings } from "@/stores/settingsStore";
@@ -239,6 +239,56 @@ const CONSTELLATIONS: {
 
 type Emitter = Phaser.GameObjects.Particles.ParticleEmitter;
 
+/**
+ * Attract/demo mode script for room 1: [frame, action, down] tuples fed into
+ * the normal input layer (60 fps; ~20 s of scripted walk/jump/magic).
+ * It doesn't need to clear the room — it just has to look alive.
+ */
+const DEMO_SCRIPT: [number, Action, boolean][] = [
+  [30, "right", true],
+  [120, "jump", true],
+  [130, "jump", false],
+  [200, "right", false],
+  [215, "create", true],
+  [220, "create", false],
+  [250, "jump", true],
+  [260, "jump", false],
+  [300, "right", true],
+  [360, "right", false],
+  [375, "fire", true],
+  [382, "fire", false],
+  [420, "left", true],
+  [500, "jump", true],
+  [510, "jump", false],
+  [560, "left", false],
+  [575, "destroy", true],
+  [582, "destroy", false],
+  [620, "right", true],
+  [680, "jump", true],
+  [690, "jump", false],
+  [740, "right", false],
+  [755, "create", true],
+  [762, "create", false],
+  [790, "jump", true],
+  [800, "jump", false],
+  [840, "left", true],
+  [900, "jump", true],
+  [910, "jump", false],
+  [960, "left", false],
+  [975, "fire", true],
+  [982, "fire", false],
+  [1020, "right", true],
+  [1080, "jump", true],
+  [1090, "jump", false],
+  [1150, "right", false],
+  [1165, "destroy", true],
+  [1172, "destroy", false],
+];
+const DEMO_END_FRAME = 1260; // ~21 s, then return to title
+
+/** Room 49 (Mystic Chamber) is the final room of the linear progression. */
+const FINAL_ROOM_ID = 49;
+
 export class GameScene extends Phaser.Scene implements EnemyHost {
   player!: Player;
   private room!: RoomData;
@@ -268,6 +318,9 @@ export class GameScene extends Phaser.Scene implements EnemyHost {
   private secretTaken = false;
   private coinsLeft = 0;
   private levelStats = { score: 0, items: 0, secrets: 0, enemies: 0 };
+  private demo = false;
+  private demoFrame = 0;
+  private demoIdx = 0;
   private bonus!: BonusCounter;
   private inv!: Inventory;
   private itemCtx!: ItemCtx;
@@ -299,7 +352,20 @@ export class GameScene extends Phaser.Scene implements EnemyHost {
     this.bumpCounts.clear();
     this.itemSprites = [];
     this.levelStats = { score: 0, items: 0, secrets: 0, enemies: 0 };
+    this.demo = !!this.registry.get("demoMode");
+    this.demoFrame = 0;
+    this.demoIdx = 0;
     resetPad();
+  }
+
+  /** Leave attract mode and return to the title screen on any real input. */
+  private exitDemo() {
+    if (!this.demo) return;
+    this.demo = false;
+    this.registry.set("demoMode", false);
+    resetPad();
+    Audio.stopMusic();
+    this.scene.start("Splash");
   }
 
   create() {
@@ -529,6 +595,12 @@ export class GameScene extends Phaser.Scene implements EnemyHost {
         if (this.bonus.expired) this.onPlayerHit();
       },
     });
+
+    // Attract mode: any real key/touch returns to title
+    if (this.demo) {
+      this.input.keyboard?.once("keydown", () => this.exitDemo());
+      this.input.once("pointerdown", () => this.exitDemo());
+    }
 
     Audio.setWorld(world);
     Audio.music("world");
@@ -1439,9 +1511,10 @@ export class GameScene extends Phaser.Scene implements EnemyHost {
   private exitWithWings() {
     if (this.finishing) return;
     this.finishing = true;
-    SaveSystem.update((s) => {
-      s.wingsSkipsUsed += 1;
-    });
+    if (!this.demo)
+      SaveSystem.update((s) => {
+        s.wingsSkipsUsed += 1;
+      });
     this.cameras.main.flash(300, 200, 220, 255, true);
     this.tweens.add({
       targets: this.player,
@@ -1484,6 +1557,7 @@ export class GameScene extends Phaser.Scene implements EnemyHost {
   private collectSeal(type: ItemType) {
     this.levelStats.secrets++;
     const constellation = constellationOfRoom(this.room.id);
+    if (this.demo) return;
     SaveSystem.update((s) => {
       if (type === "sealSolomon") {
         if (!s.solomonSeals.includes(this.room.id))
@@ -1507,6 +1581,10 @@ export class GameScene extends Phaser.Scene implements EnemyHost {
     if (this.finishing || !this.doorOpen || !this.hasKey || !this.player.alive)
       return;
     this.finishing = true;
+    if (this.demo) {
+      this.exitDemo();
+      return;
+    }
     Audio.music("victory");
     const bonusLeft = this.bonus.value;
     const timeBonus = bonusLeft; // remaining bonus counter is awarded as end-of-room bonus
@@ -1516,6 +1594,7 @@ export class GameScene extends Phaser.Scene implements EnemyHost {
       timeLeft: Math.floor(bonusLeft / 1000),
       timeBonus,
     };
+    const isFinal = this.room.id === FINAL_ROOM_ID;
     const next = nextRoom(this.room.id, {
       seals: SaveSystem.current().constellationSeals.length,
       sign: this.itemCtx.flags.sign,
@@ -1530,6 +1609,13 @@ export class GameScene extends Phaser.Scene implements EnemyHost {
       s.totalScore += stats.score;
       s.itemsCollected += stats.items;
     });
+    // Autosave: resume point + run inventory (seals already written at pickup)
+    SaveSystem.autosave({
+      room: isFinal ? FINAL_ROOM_ID : next,
+      fairies: this.inv.fairies,
+      solomonSeals: [...this.itemCtx.seals.solomon],
+      constellationSeals: [...this.itemCtx.seals.constellation],
+    });
     this.cameras.main.flash(300, 255, 232, 100, true);
     this.tweens.add({
       targets: this.player,
@@ -1539,8 +1625,15 @@ export class GameScene extends Phaser.Scene implements EnemyHost {
     });
     this.time.delayedCall(800, () => {
       Audio.stopMusic();
-      if (this.room.id === FINAL_STAGE_ID) {
-        this.scene.start("Credits", { victory: true });
+      if (isFinal) {
+        const slot = SaveSystem.current();
+        this.scene.start("Ending", {
+          ending: endingFor({
+            princess: slot.princessUnlocked,
+            pageTime: slot.pages.time,
+            pageSpace: slot.pages.space,
+          }),
+        });
       } else {
         this.scene.start("LevelComplete", {
           levelId: this.room.id,
@@ -1566,6 +1659,10 @@ export class GameScene extends Phaser.Scene implements EnemyHost {
     this.burst(this.player.x, this.player.y, this.emOrange, 8);
     this.cameras.main.shake(200, 0.012);
     this.cameras.main.flash(200, 230, 59, 59, true);
+    if (this.demo) {
+      this.time.delayedCall(1200, () => this.exitDemo());
+      return;
+    }
     this.registry.inc("lives", -1);
     const lives = this.registry.get("lives") as number;
     this.time.delayedCall(1400, () => {
@@ -1580,6 +1677,24 @@ export class GameScene extends Phaser.Scene implements EnemyHost {
 
   update() {
     if (this.finishing) return;
+
+    // Attract mode: feed the scripted inputs into the normal input layer
+    if (this.demo) {
+      while (
+        this.demoIdx < DEMO_SCRIPT.length &&
+        DEMO_SCRIPT[this.demoIdx][0] <= this.demoFrame
+      ) {
+        const [, action, down] = DEMO_SCRIPT[this.demoIdx];
+        setPad(action, down);
+        this.demoIdx++;
+      }
+      this.demoFrame++;
+      if (this.demoFrame >= DEMO_END_FRAME) {
+        this.exitDemo();
+        return;
+      }
+    }
+
     this.player.update();
 
     if (this.player.alive) {

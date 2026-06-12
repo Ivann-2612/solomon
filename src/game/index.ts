@@ -18,7 +18,8 @@ import {
   LevelCompleteScene,
   SecretFoundScene,
   GameOverScene,
-  LeaderboardScene
+  LeaderboardScene,
+  EndingScene
 } from './scenes/FlowScenes';
 import { GameScene } from './scenes/GameScene';
 
@@ -57,7 +58,8 @@ export function createGame(parent: HTMLElement): Phaser.Game {
       LevelCompleteScene,
       SecretFoundScene,
       GameOverScene,
-      LeaderboardScene
+      LeaderboardScene,
+      EndingScene
     ]
   });
 }

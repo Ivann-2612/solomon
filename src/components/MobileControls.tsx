@@ -70,6 +70,11 @@ export default function MobileControls({ visible }: { visible: boolean }) {
           label="▶"
           style={{ left: 14 + d + 10, bottom: 24 + d * 0.45, width: d, height: d, fontSize: d * 0.4 }}
         />
+        <Btn
+          action="up"
+          label="▲"
+          style={{ left: 14 + d * 0.5 + 5, bottom: 24 + d * 1.45, width: d, height: d, fontSize: d * 0.4 }}
+        />
         {/* Action buttons - right side */}
         <Btn
           action="jump"

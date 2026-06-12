@@ -13,7 +13,7 @@ import {
   FINAL_STAGE_ID,
   constellationOfRoom
 } from '../constants';
-import { getRoom, roomTitle } from '../levels/registry';
+import { getRoom, roomTitle, nextRoom, wingsTarget } from '../levels/registry';
 import { WORLD_TINTS } from '../assets/palette';
 import { Player } from '../entities/Player';
 import { Enemy, type EnemyHost } from '../entities/Enemy';
@@ -24,6 +24,7 @@ import { SaveSystem } from '../systems/save';
 import { getSettings } from '@/stores/settingsStore';
 import { BonusCounter } from '../systems/scoring';
 import { Inventory } from '../systems/inventory';
+import { applyItem, type ItemCtx } from '../systems/items';
 
 const tw = (gx: number) => gx * TILE + TILE / 2;
 const th = (gy: number) => gy * TILE + TILE / 2;
@@ -77,6 +78,7 @@ export class GameScene extends Phaser.Scene implements EnemyHost {
   private levelStats = { score: 0, items: 0, secrets: 0, enemies: 0 };
   private bonus!: BonusCounter;
   private inv!: Inventory;
+  private itemCtx!: ItemCtx;
 
   // effect emitters
   private emGold!: Emitter;
@@ -121,6 +123,13 @@ export class GameScene extends Phaser.Scene implements EnemyHost {
     // Create BonusCounter and Inventory for this room
     this.bonus = new BonusCounter();
     this.inv = new Inventory();
+    this.itemCtx = {
+      inv: this.inv,
+      bonus: this.bonus,
+      score: 0,
+      flags: { bellRung: false, meltona: false, wings: false, sealHere: false, sign: false },
+      seals: { solomon: new Set<number>(), constellation: new Set<number>() }
+    };
 
     this.physics.world.setBounds(TILE, TILE, (GRID_W - 2) * TILE, (GRID_H - 2) * TILE);
     this.solids = this.physics.add.staticGroup();
@@ -525,6 +534,15 @@ export class GameScene extends Phaser.Scene implements EnemyHost {
     };
   }
 
+  private itemAtCell(gx: number, gy: number): Phaser.Physics.Arcade.Sprite | null {
+    const rect = new Phaser.Geom.Rectangle(gx * TILE, gy * TILE, TILE, TILE);
+    return (
+      this.itemSprites.find(
+        (it) => it.active && it.visible && Phaser.Geom.Rectangle.Overlaps(rect, it.getBounds())
+      ) ?? null
+    );
+  }
+
   private cellFree(gx: number, gy: number): boolean {
     if (this.gridAt(gx, gy) !== Tile.Empty) return false;
     const rect = new Phaser.Geom.Rectangle(gx * TILE, gy * TILE, TILE, TILE);
@@ -560,6 +578,21 @@ export class GameScene extends Phaser.Scene implements EnemyHost {
         ];
     for (const t of targets) {
       if (t.x <= 0 || t.x >= GRID_W - 1 || t.y <= 0 || t.y >= GRID_H - 1) continue;
+      // Diamond rule: casting block magic on a diamond turns it into a jar of the same color
+      const occupant = this.itemAtCell(t.x, t.y);
+      if (occupant) {
+        const itype = occupant.getData('itype') as ItemType;
+        if (itype === 'diamondBlue' || itype === 'diamondOrange') {
+          const jar: ItemType = itype === 'diamondBlue' ? 'jarBlue' : 'jarOrange';
+          occupant.setData('itype', jar);
+          occupant.setTexture(this.textures.exists(`item-${jar}`) ? `item-${jar}` : 'item-coin');
+          this.burst(occupant.x, occupant.y, this.emPurple, 8);
+          this.burst(occupant.x, occupant.y, this.emCyan, 5);
+          Audio.sfx('create');
+          this.player.showCast();
+          return;
+        }
+      }
       if (this.cellFree(t.x, t.y)) {
         this.addMagicBlock(t.x, t.y, true);
         Audio.sfx('create');
@@ -729,21 +762,29 @@ export class GameScene extends Phaser.Scene implements EnemyHost {
     spr.destroy();
     this.levelStats.items++;
     this.registry.inc('itemsCollected', 1);
+
+    // Pure effect dispatch (inventory, bonus counter, flags, seals, points)
+    const sealIndex = type === 'sealSolomon' ? this.room.id : constellationOfRoom(this.room.id);
+    const pts = applyItem(type, this.itemCtx, sealIndex);
+    if (pts > 0) {
+      this.addScore(pts);
+      this.floatScore(ix, iy, pts);
+    }
+
+    // Scene-level effects + visuals
     switch (type) {
       case 'coin':
         this.burst(ix, iy, this.emGold, 7);
-        this.addScore(POINTS.coin);
-        this.floatScore(ix, iy, POINTS.coin);
         Audio.sfx('coin');
         this.coinsLeft--;
         if (this.coinsLeft === 0) this.revealHiddenItems();
         break;
       case 'gem':
       case 'jewel':
+      case 'diamondBlue':
+      case 'diamondOrange':
         this.burst(ix, iy, this.emCyan, 8);
         this.burst(ix, iy, this.emGreen, 4);
-        this.addScore(POINTS.gem);
-        this.floatScore(ix, iy, POINTS.gem);
         Audio.sfx('gem');
         break;
       case 'chest':
@@ -761,10 +802,16 @@ export class GameScene extends Phaser.Scene implements EnemyHost {
       case 'time':
       case 'hourglass':
       case 'hourglassBlue':
+      case 'medEdlem':
+      case 'potionX2':
+      case 'potionX5':
         this.burst(ix, iy, this.emWhite, 8);
-        // Extend bonus counter via hourglass
-        this.bonus.applyHourglass(type === 'hourglassBlue');
         Audio.sfx('chest');
+        break;
+      case 'medMeltona':
+      case 'signConstellation':
+        this.burst(ix, iy, this.emPurple, 10);
+        Audio.sfx('secret');
         break;
       case 'fire':
       case 'jarBlue':
@@ -772,26 +819,53 @@ export class GameScene extends Phaser.Scene implements EnemyHost {
       case 'jarUpgrade':
         this.burst(ix, iy, this.emOrange, 12);
         this.burst(ix, iy, this.emGold, 6);
-        if (type === 'jarBlue') this.inv.addJar('blue');
-        else if (type === 'jarOrange') this.inv.addJar('orange');
-        else if (type === 'jarUpgrade') this.inv.addJar('upgrade');
-        else { this.inv.addJar('blue'); } // legacy 'fire' item
-        this.addScore(POINTS.fire);
-        this.floatScore(ix, iy, POINTS.fire);
         Audio.sfx('secret');
         break;
       case 'crystalBlue':
       case 'crystalOrange':
         this.burst(ix, iy, this.emCyan, 8);
-        this.inv.addCrystal(type === 'crystalBlue' ? 'blue' : 'orange');
-        this.addScore(POINTS.gem);
-        this.floatScore(ix, iy, POINTS.gem);
         Audio.sfx('gem');
+        break;
+      case 'fairy':
+        this.burst(ix, iy, this.emWhite, 10);
+        Audio.sfx('secret');
+        break;
+      case 'bell':
+        this.burst(ix, iy, this.emGold, 10);
+        Audio.sfx('secret');
+        this.releaseFairy();
+        break;
+      case 'wings':
+        this.burst(ix, iy, this.emWhite, 14);
+        Audio.sfx('secret');
+        this.exitWithWings();
+        break;
+      case 'key':
+        this.burst(ix, iy, this.emGold, 12);
+        Audio.sfx('key');
+        this.hasKey = true;
+        this.openDoor();
+        break;
+      case 'pageTime':
+        this.burst(ix, iy, this.emGold, 16);
+        SaveSystem.update((s) => { s.pages.time = true; });
+        Audio.sfx('secret');
+        break;
+      case 'pageSpace':
+        this.burst(ix, iy, this.emGold, 16);
+        SaveSystem.update((s) => { s.pages.space = true; });
+        Audio.sfx('secret');
+        break;
+      case 'princess':
+        this.burst(ix, iy, this.emGold, 20);
+        SaveSystem.update((s) => { s.princessUnlocked = true; });
+        Audio.sfx('secret');
         break;
       case 'seal':
       case 'sealSolomon':
       case 'sealConstellation':
-        this.collectSeal();
+        this.burst(ix, iy, this.emPurple, 12);
+        this.collectSeal(type);
         break;
       case 'crown':
         this.burst(ix, iy, this.emGold, 20);
@@ -816,6 +890,51 @@ export class GameScene extends Phaser.Scene implements EnemyHost {
         this.burst(ix, iy, this.emGold, 5);
         break;
     }
+  }
+
+  /** Bell pickup: a fairy emerges from the door and drifts slowly around the room. */
+  private releaseFairy() {
+    const tex = this.textures.exists('item-fairy') ? 'item-fairy' : 'item-coin';
+    const fairy = this.physics.add.sprite(this.doorSprite.x, this.doorSprite.y, tex);
+    (fairy.body as Phaser.Physics.Arcade.Body).setAllowGravity(false);
+    fairy.setDepth(20);
+    this.addGlow(fairy, 0xffffff, 2);
+    const drift = () => {
+      if (!fairy.active) return;
+      this.tweens.add({
+        targets: fairy,
+        x: Phaser.Math.Between(TILE * 2, GAME_W - TILE * 2),
+        y: Phaser.Math.Between(TILE * 2, (GRID_H - 3) * TILE),
+        duration: Phaser.Math.Between(1800, 2600),
+        ease: 'Sine.InOut',
+        onComplete: drift
+      });
+    };
+    drift();
+    this.physics.add.overlap(this.player, fairy, () => {
+      if (!fairy.active) return;
+      const fx = fairy.x;
+      const fy = fairy.y;
+      fairy.destroy();
+      const pts = applyItem('fairy', this.itemCtx, 0); // inv.addFairy + points
+      this.addScore(pts);
+      this.floatScore(fx, fy, pts);
+      this.burst(fx, fy, this.emWhite, 12);
+      Audio.sfx('secret');
+    });
+  }
+
+  /** Wings pickup: leave the room immediately and skip ahead. */
+  private exitWithWings() {
+    if (this.finishing) return;
+    this.finishing = true;
+    SaveSystem.update((s) => { s.wingsSkipsUsed += 1; });
+    this.cameras.main.flash(300, 200, 220, 255, true);
+    this.tweens.add({ targets: this.player, y: -TILE, alpha: 0, duration: 600, ease: 'Sine.In' });
+    this.time.delayedCall(700, () => {
+      Audio.stopMusic();
+      this.scene.start('Game', { roomId: wingsTarget(this.room.id) });
+    });
   }
 
   private revealHiddenItems() {
@@ -843,12 +962,15 @@ export class GameScene extends Phaser.Scene implements EnemyHost {
     Audio.sfx('secret');
   }
 
-  private collectSeal() {
-    this.addScore(POINTS.seal);
+  private collectSeal(type: ItemType) {
     this.levelStats.secrets++;
     const constellation = constellationOfRoom(this.room.id);
     SaveSystem.update((s) => {
-      if (!s.constellationSeals.includes(constellation)) s.constellationSeals.push(constellation);
+      if (type === 'sealSolomon') {
+        if (!s.solomonSeals.includes(this.room.id)) s.solomonSeals.push(this.room.id);
+      } else if (!s.constellationSeals.includes(constellation)) {
+        s.constellationSeals.push(constellation);
+      }
       s.secretsFound += 1;
       if (s.constellationSeals.length >= 6) s.pages.time = true;
       if (s.constellationSeals.length >= 12) {
@@ -866,9 +988,14 @@ export class GameScene extends Phaser.Scene implements EnemyHost {
     this.finishing = true;
     Audio.music('victory');
     const bonusLeft = this.bonus.value;
-    const timeBonus = Math.floor(bonusLeft / 100) * 10; // partial time bonus from bonus counter
+    const timeBonus = bonusLeft; // remaining bonus counter is awarded as end-of-room bonus
     this.addScore(timeBonus);
     const stats = { ...this.levelStats, timeLeft: Math.floor(bonusLeft / 1000), timeBonus };
+    const next = nextRoom(this.room.id, {
+      seals: SaveSystem.current().constellationSeals.length,
+      sign: this.itemCtx.flags.sign,
+      sealHere: this.itemCtx.flags.sealHere
+    });
     SaveSystem.update((s) => {
       if (!s.completedStages.includes(this.room.id)) s.completedStages.push(this.room.id);
       if (this.room.id < 48) s.unlockedStage = Math.max(s.unlockedStage, this.room.id + 1);
@@ -883,7 +1010,7 @@ export class GameScene extends Phaser.Scene implements EnemyHost {
       if (this.room.id === FINAL_STAGE_ID) {
         this.scene.start('Credits', { victory: true });
       } else {
-        this.scene.start('LevelComplete', { levelId: this.room.id, stats });
+        this.scene.start('LevelComplete', { levelId: this.room.id, stats, nextId: next });
       }
     });
   }

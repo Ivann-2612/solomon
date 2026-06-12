@@ -257,6 +257,7 @@ export class LevelCompleteScene extends Phaser.Scene {
   }
   create(data: {
     levelId: number;
+    nextId?: number;
     stats: { score: number; items: number; secrets: number; enemies: number; timeLeft: number; timeBonus: number };
   }) {
     sceneEvent('LevelComplete');
@@ -274,13 +275,23 @@ export class LevelCompleteScene extends Phaser.Scene {
 
     const slot = SaveSystem.current();
     const next =
-      data.levelId < 48
+      data.nextId ??
+      (data.levelId < 48
         ? data.levelId + 1
         : data.levelId === 48
           ? 64
-          : null;
+          : null);
     const items = [];
-    if (next && (next <= slot.unlockedStage || (next === 64 && slot.unlockedStage >= 49))) {
+    if (data.nextId != null) {
+      // Room progression computed by the registry (bonus rooms, pages, etc.)
+      items.push({
+        label: 'NEXT STAGE',
+        action: () => {
+          Audio.stopMusic();
+          this.scene.start('Game', { roomId: data.nextId });
+        }
+      });
+    } else if (next && (next <= slot.unlockedStage || (next === 64 && slot.unlockedStage >= 49))) {
       items.push({
         label: 'NEXT STAGE',
         action: () => {

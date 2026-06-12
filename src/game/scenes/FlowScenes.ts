@@ -16,6 +16,7 @@ const BOSS_ROOM_NAMES: Record<number, string> = {
   48: 'Celestial Demon',
   49: 'King of Darkness',
 };
+const BOSS_ROOM_IDS = new Set(Object.keys(BOSS_ROOM_NAMES).map(Number));
 
 function getLevel(id: number) {
   return {
@@ -54,13 +55,17 @@ export class WorldMapScene extends Phaser.Scene {
       const x = 40 + col * 40;
       const y = 60 + row * 22;
       const done = slot.completedStages.includes(id);
-      const tint = WORLD_TINTS[Math.min(id <= 48 ? constellationOfRoom(id) : 11, WORLD_TINTS.length - 1)];
-      this.add.rectangle(x, y, 34, 18, 0x2a2a55).setStrokeStyle(1, id === cur ? 0xffc83c : tint);
+      const isBoss = BOSS_ROOM_IDS.has(id);
+      const tint = isBoss
+        ? (id === cur ? 0xffc83c : 0xe23b3b)
+        : WORLD_TINTS[Math.min(id <= 48 ? constellationOfRoom(id) : 11, WORLD_TINTS.length - 1)];
+      this.add.rectangle(x, y, 34, 18, isBoss ? 0x3a0a0a : 0x2a2a55).setStrokeStyle(isBoss ? 2 : 1, tint);
+      const label = isBoss ? `${id}☠` : String(id);
       const t = this.add
-        .text(x, y, String(id), {
+        .text(x, y, label, {
           fontFamily: 'monospace',
           fontSize: '9px',
-          color: done ? '#2ecc71' : '#ffc83c'
+          color: done ? '#2ecc71' : isBoss ? '#e23b3b' : '#ffc83c'
         })
         .setOrigin(0.5)
         .setInteractive({ useHandCursor: true });
@@ -179,9 +184,13 @@ export class LevelCompleteScene extends Phaser.Scene {
     title(this, 50, 'STAGE CLEAR!');
     const s = data.stats;
     txt(this, GAME_W / 2, 90, levelName(data.levelId).toUpperCase(), 11, '#ffc83c');
-    txt(this, GAME_W / 2, 115, `SCORE      ${s.score}`, 10);
-    txt(this, GAME_W / 2, 130, `TIME BONUS ${s.timeBonus}`, 10);
-    txt(this, GAME_W / 2, 145, `ITEMS ${s.items}  ENEMIES ${s.enemies}  SECRETS ${s.secrets}`, 9, '#9a9ab0');
+    if (BOSS_ROOM_IDS.has(data.levelId)) {
+      txt(this, GAME_W / 2, 105, `☠ ${BOSS_ROOM_NAMES[data.levelId]?.toUpperCase()} DEFEATED ☠`, 8, '#e23b3b');
+    }
+    const statY = BOSS_ROOM_IDS.has(data.levelId) ? 120 : 115;
+    txt(this, GAME_W / 2, statY, `SCORE      ${s.score}`, 10);
+    txt(this, GAME_W / 2, statY + 15, `TIME BONUS ${s.timeBonus}`, 10);
+    txt(this, GAME_W / 2, statY + 30, `ITEMS ${s.items}  ENEMIES ${s.enemies}  SECRETS ${s.secrets}`, 9, '#9a9ab0');
 
     // leaderboard entry
     SaveSystem.addScore(data.levelId, levelName(data.levelId), s.score + s.timeBonus);

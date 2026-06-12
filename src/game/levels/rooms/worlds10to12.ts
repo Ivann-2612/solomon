@@ -230,8 +230,9 @@ const ROOM_40: RoomData = parseRoom({
   items: [
     { x: 7, y: 4, type: 'coin' }, { x: 9, y: 4, type: 'coin' },
     { x: 7, y: 11, type: 'gem' },
+    { x: 10, y: 7, type: 'sealConstellation', hidden: true },
   ],
-  hidden: [{ x: 8, y: 6, type: 'sealConstellation' }],
+  hidden: [],
   enemies: [
     { x: 10, y: 3, type: 'wizard' },
     { x: 3, y: 10, type: 'saramandor' },
@@ -352,8 +353,9 @@ const ROOM_44: RoomData = parseRoom({
   items: [
     { x: 5, y: 7, type: 'coin' }, { x: 9, y: 4, type: 'coin' },
     { x: 7, y: 11, type: 'gem' },
+    { x: 10, y: 8, type: 'sealConstellation', hidden: true },
   ],
-  hidden: [{ x: 7, y: 7, type: 'sealConstellation' }],
+  hidden: [],
   enemies: [
     { x: 9, y: 3, type: 'wizard' },
     { x: 6, y: 8, type: 'saramandor' },
@@ -472,7 +474,7 @@ const ROOM_48: RoomData = parseRoom({
     { x: 4, y: 7, type: 'coin' }, { x: 10, y: 7, type: 'coin' },
     { x: 7, y: 11, type: 'gem' },
   ],
-  hidden: [{ x: 6, y: 7, type: 'sealConstellation' }],
+  hidden: [{ x: 3, y: 3, type: 'sealConstellation' }],  // inside center of upper-left BBB block
   enemies: [
     { x: 4, y: 1, type: 'wizard' },
     { x: 10, y: 1, type: 'wizard' },

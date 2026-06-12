@@ -495,7 +495,7 @@ export class GameScene extends Phaser.Scene implements EnemyHost {
     }
 
     // Items from room.items
-    this.coinsLeft = this.room.items.filter((i) => i.type === "coin").length;
+    this.coinsLeft = this.room.items.filter((i) => i.type === "coin" && !i.hidden).length;
     for (const it of this.room.items) {
       const tex = this.textures.exists(`item-${it.type}`)
         ? `item-${it.type}`
@@ -509,6 +509,7 @@ export class GameScene extends Phaser.Scene implements EnemyHost {
       }
       this.itemSprites.push(spr);
     }
+    if (this.coinsLeft === 0) this.revealHiddenItems();
 
     // Player
     this.player = new Player(this, this.spawnPoint.x, this.spawnPoint.y);

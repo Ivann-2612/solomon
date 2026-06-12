@@ -62,8 +62,9 @@ const ROOM_2: RoomData = parseRoom({
     { x: 7, y: 6, type: 'coin' },
     { x: 9, y: 5, type: 'coin' },
     { x: 11, y: 4, type: 'gem' },
+    { x: 12, y: 9, type: 'jarBlue', hidden: true },
   ],
-  hidden: [{ x: 12, y: 3, type: 'jarBlue' }],
+  hidden: [],
   enemies: [
     { x: 5, y: 7, type: 'goblin', facing: -1 },
     { x: 9, y: 5, type: 'goblin' },
@@ -131,8 +132,9 @@ const ROOM_4: RoomData = parseRoom({
     { x: 10, y: 11, type: 'coin' },
     { x: 7, y: 7, type: 'gem' },
     { x: 11, y: 7, type: 'coin' },
+    { x: 7, y: 2, type: 'sealConstellation', hidden: true },
   ],
-  hidden: [{ x: 12, y: 6, type: 'sealConstellation' }],
+  hidden: [],
   enemies: [
     { x: 5, y: 6, type: 'goblin' },
     { x: 9, y: 6, type: 'goblin', facing: -1 },
@@ -409,8 +411,9 @@ const ROOM_12: RoomData = parseRoom({
     { x: 7, y: 2, type: 'coin' },
     { x: 3, y: 9, type: 'gem' },
     { x: 7, y: 7, type: 'coin' },
+    { x: 12, y: 5, type: 'sealConstellation', hidden: true },
   ],
-  hidden: [{ x: 2, y: 5, type: 'sealConstellation' }],
+  hidden: [],
   enemies: [
     { x: 7, y: 6, type: 'wizard' },
     { x: 5, y: 9, type: 'goblin' },

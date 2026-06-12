@@ -104,8 +104,9 @@ const ROOM_16: RoomData = parseRoom({
   items: [
     { x: 4, y: 11, type: 'coin' }, { x: 9, y: 11, type: 'coin' },
     { x: 7, y: 7, type: 'gem' },
+    { x: 7, y: 2, type: 'sealConstellation', hidden: true },
   ],
-  hidden: [{ x: 9, y: 7, type: 'sealConstellation' }],
+  hidden: [],
   enemies: [
     { x: 3, y: 10, type: 'goblin' },
     { x: 11, y: 10, type: 'saramandor', facing: -1 },
@@ -223,8 +224,9 @@ const ROOM_20: RoomData = parseRoom({
   items: [
     { x: 5, y: 6, type: 'coin' }, { x: 9, y: 6, type: 'coin' },
     { x: 7, y: 6, type: 'gem' },
+    { x: 7, y: 2, type: 'sealConstellation', hidden: true },
   ],
-  hidden: [{ x: 6, y: 6, type: 'sealConstellation' }],
+  hidden: [],
   enemies: [
     { x: 4, y: 5, type: 'saramandor' },
     { x: 9, y: 5, type: 'goblin', facing: -1 },
@@ -339,8 +341,9 @@ const ROOM_24: RoomData = parseRoom({
   items: [
     { x: 3, y: 5, type: 'coin' }, { x: 9, y: 7, type: 'coin' },
     { x: 7, y: 11, type: 'gem' },
+    { x: 12, y: 2, type: 'sealConstellation', hidden: true },
   ],
-  hidden: [{ x: 4, y: 5, type: 'sealConstellation' }],
+  hidden: [],
   enemies: [
     { x: 12, y: 6, type: 'wizard' },
     { x: 3, y: 10, type: 'goblin' },
@@ -577,8 +580,9 @@ const ROOM_32: RoomData = parseRoom({
   items: [
     { x: 4, y: 7, type: 'coin' }, { x: 10, y: 7, type: 'coin' },
     { x: 7, y: 11, type: 'gem' },
+    { x: 12, y: 2, type: 'sealConstellation', hidden: true },
   ],
-  hidden: [{ x: 8, y: 5, type: 'sealConstellation' }],
+  hidden: [],
   enemies: [
     { x: 10, y: 4, type: 'saramandor', facing: -1 },
     { x: 3, y: 10, type: 'wizard' },

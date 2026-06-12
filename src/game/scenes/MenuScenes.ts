@@ -248,7 +248,7 @@ export class RemapScene extends Phaser.Scene {
   create() {
     starfield(this);
     title(this, 36, 'REMAP CONTROLS');
-    const actions: Action[] = ['left', 'right', 'jump', 'create', 'destroy', 'fire', 'pause'];
+    const actions: Action[] = ['left', 'right', 'up', 'jump', 'create', 'destroy', 'fire', 'pause'];
     const km = () => getSettings().keymap;
     const labels = () =>
       actions.map((a) => `${a.toUpperCase().padEnd(8)} ${km()[a][0]}`).concat(['BACK']);

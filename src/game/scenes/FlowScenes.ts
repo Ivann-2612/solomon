@@ -195,30 +195,13 @@ export class LevelCompleteScene extends Phaser.Scene {
     // leaderboard entry
     SaveSystem.addScore(data.levelId, levelName(data.levelId), s.score + s.timeBonus);
 
-    const slot = SaveSystem.current();
-    const next =
-      data.nextId ??
-      (data.levelId < 48
-        ? data.levelId + 1
-        : data.levelId === 48
-          ? 64
-          : null);
     const items = [];
     if (data.nextId != null) {
-      // Room progression computed by the registry (bonus rooms, pages, etc.)
       items.push({
         label: 'NEXT STAGE',
         action: () => {
           Audio.stopMusic();
-          this.scene.start('Game', { roomId: data.nextId });
-        }
-      });
-    } else if (next && (next <= slot.unlockedStage || (next === 64 && slot.unlockedStage >= 49))) {
-      items.push({
-        label: 'NEXT STAGE',
-        action: () => {
-          Audio.stopMusic();
-          this.scene.start('LevelIntro', { levelId: next });
+          this.scene.start('LevelIntro', { levelId: data.nextId });
         }
       });
     }

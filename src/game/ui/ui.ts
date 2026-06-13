@@ -87,13 +87,30 @@ export class Menu {
           padding: { x: 12, y: 4 },
         })
         .setOrigin(0.5)
-        .setInteractive({ useHandCursor: true, hitArea: new Phaser.Geom.Rectangle(-80, -12, 160, 24), hitAreaCallback: Phaser.Geom.Rectangle.Contains });
+        .setInteractive({
+          useHandCursor: true,
+          hitArea: new Phaser.Geom.Rectangle(-90, -14, 180, 28),
+          hitAreaCallback: Phaser.Geom.Rectangle.Contains,
+        });
 
       t.on('pointerover', () => this.select(i));
       t.on('pointerdown', () => { this.select(i); this.activate(); });
       this.texts.push(t);
     });
     this.select(0);
+
+    // Scene-level fallback: tap anywhere near an item row activates it.
+    // This bypasses Phaser hit-testing issues on mobile (stale canvas bounds).
+    scene.input.on('pointerdown', (ptr: Phaser.Input.Pointer) => {
+      const halfGap = gap * 0.55;
+      for (let i = 0; i < items.length; i++) {
+        if (Math.abs(ptr.y - (y + i * gap)) < halfGap) {
+          this.select(i);
+          this.activate();
+          return;
+        }
+      }
+    });
 
     const kb = scene.input.keyboard;
     if (kb) {

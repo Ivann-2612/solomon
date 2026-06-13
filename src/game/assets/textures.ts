@@ -76,6 +76,26 @@ const DANA_WALK = [
   '..KOK...KoK.',  // stride: left foot forward (O=bright), right trailing (o=dark)
   '..KoK...KKK.',  // soles: left down, right foot lifted
 ];
+// Dana crouching — hat still visible, body compressed into bottom half
+const DANA_DUCK = [
+  '............',  // 0  empty (hat hidden)
+  '....YY......',  // 1  hat tip
+  '....pp......',  // 2
+  '...pPPp.....',  // 3  hat body compressed
+  '..pPPPPp....',  // 4
+  '.GGGGGGGGo..',  // 5  gold brim (hat low)
+  '.KSSGoGSSK..',  // 6  face
+  '.KSSSoSSSK..',  // 7  chin
+  'KKGGGGGGGGKK',  // 8  gold collar
+  'KPPpGGGpPPKK',  // 9  belt only (no shoulder rows)
+  '.KPPpPPpPPK.',  // 10 robe squished
+  '..KPPpPPPK..',  // 11 robe hem
+  '..KOK..KOK..',  // 12 boots
+  '..KoK..KoK..',  // 13 boot soles
+  '............',  // 14
+  '............',  // 15
+];
+
 const DANA_CAST = [
   '....YY......',
   '....pp......',
@@ -805,6 +825,7 @@ const HEART_HUD = [
 export function makeTextures(scene: Phaser.Scene) {
   drawMap(scene, 'dana-idle', DANA_IDLE);
   drawMap(scene, 'dana-walk', DANA_WALK);
+  drawMap(scene, 'dana-duck', DANA_DUCK);
   drawMap(scene, 'dana-cast', DANA_CAST);
   drawMap(scene, 'imp-0',        IMP);
   drawMap(scene, 'imp-1',        IMP2);

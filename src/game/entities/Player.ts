@@ -95,7 +95,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       this.setTexture('dana-cast');
     } else if (this.ducking) {
       this.anims.stop();
-      this.setTexture('dana-idle'); // TODO Task 10: use duck frame
+      this.setTexture('dana-duck');
     } else if (!onGround) {
       this.anims.stop();
       this.setTexture('dana-walk');

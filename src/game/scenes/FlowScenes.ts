@@ -228,12 +228,23 @@ export class LevelCompleteScene extends Phaser.Scene {
 
     SaveSystem.addScore(data.levelId, levelName(data.levelId), s.score + s.timeBonus);
 
+    const goNext = () => { Audio.stopMusic(); this.scene.start('LevelIntro', { levelId: data.nextId ?? 1 }); };
+    const goMap  = () => { Audio.stopMusic(); this.scene.start('WorldMap'); };
+
     const menuItems = [];
     if (data.nextId != null) {
-      menuItems.push({ label: 'NEXT STAGE', action: () => { Audio.stopMusic(); this.scene.start('LevelIntro', { levelId: data.nextId }); } });
+      menuItems.push({ label: 'NEXT STAGE', action: goNext });
     }
-    menuItems.push({ label: 'WORLD MAP', action: () => { Audio.stopMusic(); this.scene.start('WorldMap'); } });
+    menuItems.push({ label: 'WORLD MAP', action: goMap });
     new Menu(this, CX, 194, 24, menuItems, 12);
+
+    // Tap anywhere on the screen → advance to next stage (belt-and-suspenders for touch)
+    this.input.once('pointerdown', data.nextId != null ? goNext : goMap);
+    // Auto-advance after 6 s so the game never stays frozen
+    this.time.delayedCall(6000, data.nextId != null ? goNext : goMap);
+
+    const hint = txt(this, CX, 222, 'TAP TO CONTINUE', 8, '#ffc83c');
+    this.tweens.add({ targets: hint, alpha: 0.2, duration: 600, yoyo: true, repeat: -1 });
   }
 }
 

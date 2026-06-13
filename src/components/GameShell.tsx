@@ -73,6 +73,9 @@ export default function GameShell() {
     const onScene = (e: Event) => {
       const name = (e as CustomEvent).detail as string;
       setInGame(name === 'Game');
+      // Re-measure canvas bounds on every scene transition so stale
+      // canvasBounds never break pointer input on interactive scenes.
+      setTimeout(() => gameRef.current?.scale.refresh(), 60);
     };
     window.addEventListener('mk-scene', onScene);
     // Try to lock orientation to landscape on mobile

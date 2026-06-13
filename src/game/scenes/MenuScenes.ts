@@ -173,7 +173,7 @@ export class MainMenuScene extends Phaser.Scene {
     new Menu(this, GAME_W / 2, 138, 24, menuItems);
 
     separator(this, GAME_H - 22);
-    txt(this, GAME_W / 2, GAME_H - 13, 'ARROWS / WASD  •  Z=JUMP  X=BLOCK  C=BREAK  V=FIRE', 8, '#3d3d6a');
+    txt(this, GAME_W / 2, GAME_H - 13, 'ARROWS / WASD  •  Z=JUMP  X=BLOCK  C=BREAK  V=FIRE', 8, '#8888b8');
   }
 }
 

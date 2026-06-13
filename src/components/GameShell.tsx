@@ -63,6 +63,12 @@ export default function GameShell() {
       const { createGame } = await import('@/game');
       if (!destroyed && hostRef.current && !gameRef.current) {
         gameRef.current = createGame(hostRef.current);
+        // Force Scale Manager to re-measure canvas bounds after React layout settles.
+        // Without this, canvasBounds can be stale and pointer input misfires.
+        requestAnimationFrame(() => {
+          gameRef.current?.scale.refresh();
+          window.dispatchEvent(new Event('resize'));
+        });
       }
     })();
     return () => {

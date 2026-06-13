@@ -38,7 +38,9 @@ export function createGame(parent: HTMLElement): Phaser.Game {
     },
     scale: {
       mode: Phaser.Scale.FIT,
-      autoCenter: Phaser.Scale.CENTER_BOTH
+      autoCenter: Phaser.Scale.CENTER_BOTH,
+      width: GAME_W,
+      height: GAME_H,
     },
     scene: [
       BootScene,

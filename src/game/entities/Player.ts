@@ -83,8 +83,8 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       }
     }
 
-    // single jump only - no double jump, no wall slide
-    if (justPressed('jump') && onGround && !this.ducking) {
+    // single jump — Space/Z/ArrowUp all trigger it
+    if ((justPressed('jump') || justPressed('up')) && onGround && !this.ducking) {
       body.setVelocityY(JUMP_VELOCITY);
       Audio.sfx('jump');
     }

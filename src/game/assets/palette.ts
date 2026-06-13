@@ -1,57 +1,57 @@
-// Game palette — Solomon's Key remaster colors
+// Game palette — Mystic Key 2026 remaster
 export const COLORS: Record<string, string> = {
-  K: '#0a0a12', // outline / dark mortar
+  K: '#08080f', // outline / dark mortar
   D: '#0a0a23', // dark bg
-  B: '#2a2a55', // blue panel
-  b: '#3d3d7a', // mid blue
-  W: '#f4f4f4', // white (stone face — tints to world color)
-  w: '#9a9ab0', // gray (stone shadow row)
+  B: '#1e1e4a', // blue panel
+  b: '#2e2e6a', // mid blue
+  W: '#eeeef8', // near-white highlight
+  w: '#8888a8', // muted mid (shadow)
   G: '#ffc83c', // gold
-  Y: '#ffe89a', // light gold
-  O: '#ff7f27', // orange
-  o: '#b3541e', // dark orange
-  P: '#8c4bd9', // purple
-  p: '#5d2e99', // dark purple
-  E: '#2ecc71', // emerald
-  e: '#1d8c4c', // dark emerald
-  R: '#e23b3b', // red
-  S: '#ffd9a0', // skin
-  C: '#59d9e6', // cyan
-  M: '#d957d9', // magenta
-  // Amber — magic block (NOT tinted, fixed sand color)
-  N: '#d4a848', // amber bright
-  n: '#7a5818', // amber dark
-  F: '#f0c060', // amber highlight
-  // Stone-dark for BG
-  Q: '#1c1c2a', // dark wall bg
-  q: '#141420', // darker wall bg
+  Y: '#fff0a0', // bright gold
+  O: '#ff8c2a', // orange
+  o: '#c45a18', // dark orange
+  P: '#aa5cff', // bright purple (robe highlight)
+  p: '#7030cc', // mid purple
+  E: '#30e878', // bright emerald
+  e: '#1a9a50', // dark emerald
+  R: '#ff3a3a', // red
+  S: '#ffdab0', // skin
+  C: '#44e0f0', // bright cyan
+  M: '#e040e0', // magenta
+  // Amber — magic block
+  N: '#f0b840', // amber bright
+  n: '#8a5c10', // amber dark
+  F: '#ffe060', // amber highlight
+  // Stone/wall
+  Q: '#18182a', // dark wall bg
+  q: '#101018', // darker wall bg
   // Task 10 — wall/theme palette
-  T: '#e08840', // tan/orange wall face (main block)
-  t: '#9c5418', // tan dark shadow
-  U: '#f8c078', // tan highlight
-  A: '#4070c0', // blue brick face
-  a: '#284884', // blue brick dark
-  L: '#9898a8', // grey brick face
-  l: '#5c5c6c', // grey brick dark
-  s: '#d8b878', // sandstone face
-  z: '#8c6c38', // sandstone dark
-  d: '#34344a', // dark stone face (theme 0)
+  T: '#c87030', // warm stone face
+  t: '#7a3c10', // stone shadow
+  U: '#ffd090', // stone highlight
+  A: '#3a68d0', // blue brick face
+  a: '#1e3c8a', // blue brick dark
+  L: '#7878a0', // grey brick face
+  l: '#444460', // grey brick dark
+  s: '#d8a858', // sandstone face
+  z: '#7a5820', // sandstone dark
+  d: '#28283c', // dark stone face (theme 0)
 };
 
-// Per-world tint applied to stone tiles (pure white → this color)
+// Per-world tints — vivid, punchy 2026 palette
 export const WORLD_TINTS: number[] = [
-  0x5bbccf, // Aries      – teal blue (original SK feel)
-  0x48c878, // Taurus     – emerald green
-  0xffd84a, // Gemini     – gold yellow
-  0x50c8e8, // Cancer     – sky blue
-  0xff8844, // Leo        – orange
-  0x80d870, // Virgo      – lime green
-  0xd8d8f8, // Libra      – silver white
-  0xe84870, // Scorpio    – crimson
-  0xa870ff, // Sagittarius– violet
-  0x909098, // Capricorn  – stone gray
-  0x4898ff, // Aquarius   – blue
-  0x48f0b8, // Pisces     – cyan teal
-  0xe050e0, // Secret     – magenta
-  0xffc030, // Solomon    – gold
+  0x4ac8e8, // Aries      – sky teal
+  0x30d870, // Taurus     – vivid emerald
+  0xffcc30, // Gemini     – bright gold
+  0x40c8ff, // Cancer     – electric blue
+  0xff7020, // Leo        – vivid orange
+  0x88e840, // Virgo      – lime
+  0xd8d8ff, // Libra      – lavender white
+  0xff3060, // Scorpio    – hot crimson
+  0xb060ff, // Sagittarius– vivid violet
+  0x9090b0, // Capricorn  – silver
+  0x2890ff, // Aquarius   – royal blue
+  0x20f0c0, // Pisces     – aquamarine
+  0xff40e0, // Secret     – vivid magenta
+  0xffa000, // Solomon    – deep gold
 ];

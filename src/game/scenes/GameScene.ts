@@ -878,14 +878,14 @@ export class GameScene extends Phaser.Scene implements EnemyHost {
       playH / 2,
       GAME_W,
       playH,
-      hc ? 0x000000 : 0x080816,
+      hc ? 0x000000 : 0x0d1030,
     );
     if (hc) return;
 
     const gfx = this.add.graphics();
 
-    // Deep space bg — layered dark panels with slight depth variation
-    gfx.fillStyle(0x06060f, 0.7);
+    // Subtle depth panels — slightly lighter than base
+    gfx.fillStyle(0x0a0820, 0.5);
     for (let row = 0; row < 7; row++) {
       for (let col = 0; col < 4; col++) {
         const bx = col * 90 + (row % 2) * 45;
@@ -893,17 +893,17 @@ export class GameScene extends Phaser.Scene implements EnemyHost {
         gfx.fillRect(bx, by, 88, 42);
       }
     }
-    // World color tint — stronger for vibrancy
-    gfx.fillStyle(tint, 0.07);
+    // World color tint — vivid per-world wash
+    gfx.fillStyle(tint, 0.20);
     gfx.fillRect(0, 0, GAME_W, playH);
-    // Subtle vignette edges — left/right darker strip
-    gfx.fillStyle(0x000000, 0.25);
+    // Subtle vignette edges
+    gfx.fillStyle(0x000000, 0.18);
     gfx.fillRect(0, 0, 14, playH);
     gfx.fillRect(GAME_W - 14, 0, 14, playH);
 
     const ci = world % CONSTELLATIONS.length;
     const con = CONSTELLATIONS[ci];
-    gfx.lineStyle(1, tint, 0.08);
+    gfx.lineStyle(1, tint, 0.18);
     for (const [from, to] of con.lines) {
       const [x1, y1] = con.stars[from];
       const [x2, y2] = con.stars[to];
@@ -911,11 +911,11 @@ export class GameScene extends Phaser.Scene implements EnemyHost {
     }
 
     for (const [sx, sy] of con.stars) {
-      this.add.rectangle(sx * GAME_W, sy * playH, 2, 2, tint).setAlpha(0.3);
+      this.add.rectangle(sx * GAME_W, sy * playH, 3, 3, tint).setAlpha(0.55);
     }
 
     const eyeGlow = (x: number, y: number) => {
-      const eye = this.add.rectangle(x, y, 4, 4, tint).setAlpha(0.7);
+      const eye = this.add.rectangle(x, y, 4, 4, tint).setAlpha(0.85);
       this.tweens.add({
         targets: eye,
         alpha: 0.1,

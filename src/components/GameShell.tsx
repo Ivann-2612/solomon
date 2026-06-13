@@ -7,24 +7,43 @@ import { setPad } from '@/game/systems/input';
 import type { Action } from '@/types';
 import MobileControls from './MobileControls';
 
+function detectIOS() {
+  if (typeof navigator === 'undefined') return false;
+  return (
+    /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
+  );
+}
+
+function isStandalone() {
+  return typeof window !== 'undefined' && (window.navigator as any).standalone === true;
+}
+
 export default function GameShell() {
   const hostRef = useRef<HTMLDivElement>(null);
   const gameRef = useRef<Phaser.Game | null>(null);
   const [inGame, setInGame] = useState(false);
   const [isTouch, setIsTouch] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [iosHint, setIosHint] = useState(false);
   const [hostStyle, setHostStyle] = useState<React.CSSProperties>({});
   const keymap = useSettings((s) => s.keymap);
 
-  const toggleFullscreen = useCallback(() => {
-    const el = document.documentElement;
-    if (!document.fullscreenElement) {
-      el.requestFullscreen?.({ navigationUI: 'hide' }).catch(() => {
-        (el as any).webkitRequestFullscreen?.();
-      });
-    } else {
-      document.exitFullscreen?.().catch(() => {});
+  const toggleFullscreen = useCallback(async () => {
+    if (detectIOS() && !isStandalone()) {
+      // iOS Safari can't go fullscreen; nudge user to install as PWA
+      setIosHint(true);
+      setTimeout(() => setIosHint(false), 3500);
+      return;
     }
+    try {
+      if (!document.fullscreenElement) {
+        await document.documentElement.requestFullscreen({ navigationUI: 'hide' });
+        try { await (screen.orientation as any).lock('landscape'); } catch { /* not all browsers */ }
+      } else {
+        await document.exitFullscreen();
+      }
+    } catch { /* denied / not supported */ }
   }, []);
 
   useEffect(() => {
@@ -138,8 +157,14 @@ export default function GameShell() {
           onClick={toggleFullscreen}
           aria-label={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
         >
-          {isFullscreen ? '⊡' : '⛶'}
+          {isFullscreen ? '✕' : '⤢'}
         </button>
+      )}
+      {/* iOS fullscreen hint */}
+      {iosHint && (
+        <div className="mk-ios-hint">
+          Tap <strong>Share</strong> → <strong>Add to Home Screen</strong> for fullscreen
+        </div>
       )}
       {/* Landscape hint — only shown in CSS portrait media query */}
       <div id="rotate-hint">

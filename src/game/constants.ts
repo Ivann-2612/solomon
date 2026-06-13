@@ -35,6 +35,9 @@ export const ZODIAC = [
   'Pisces'
 ] as const;
 
+/** Returns 0-based constellation index (0=Aries … 11=Pisces) for a standard room id 1..48. */
+export const constellationOfRoom = (id: number): number => Math.min(11, Math.floor((id - 1) / 4));
+
 export const STAGES_PER_WORLD = 4;
 export const STANDARD_STAGES = 48;
 export const SECRET_STAGES = 15;

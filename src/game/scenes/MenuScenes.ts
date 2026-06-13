@@ -56,6 +56,13 @@ export class SplashScene extends Phaser.Scene {
     };
     this.input.keyboard?.once('keydown', go);
     this.input.once('pointerdown', go);
+    // Attract/demo mode after 10 s idle on the title screen
+    this.time.delayedCall(10000, () => {
+      this.registry.set('demoMode', true);
+      this.registry.set('lives', START_LIVES);
+      this.registry.set('runScore', 0);
+      this.scene.start('Game', { roomId: 1 });
+    });
   }
 }
 
@@ -72,6 +79,7 @@ export class MainMenuScene extends Phaser.Scene {
     Audio.music('menu');
     const menuItems: { label: string; action: () => void }[] = [
       { label: 'START GAME', action: () => this.scene.start('SaveSelect') },
+      { label: 'LEVEL SELECT', action: () => this.scene.start('WorldMap') },
       { label: 'LEADERBOARD', action: () => this.scene.start('Leaderboard', { back: 'MainMenu' }) },
       { label: 'SETTINGS', action: () => this.scene.start('Settings', { back: 'MainMenu' }) },
       { label: 'CREDITS', action: () => this.scene.start('Credits', { victory: false }) }
@@ -103,7 +111,7 @@ export class SaveSelectScene extends Phaser.Scene {
     const slots = SaveSystem.slots();
     const items = slots.map((s, i) => ({
       label: s.exists
-        ? `SLOT ${i + 1}  ${s.completedStages.length}/64  [${s.seals.length}S]`
+        ? `SLOT ${i + 1}  ROOM ${s.room || 1}  [${s.constellationSeals.length}S]`
         : `SLOT ${i + 1}  - NEW GAME -`,
       action: () => {
         SaveSystem.select(i);
@@ -112,7 +120,9 @@ export class SaveSelectScene extends Phaser.Scene {
         this.registry.set('runScore', 0);
         this.registry.set('fire', false);
         SaveSystem.update(() => {});
-        this.scene.start('WorldMap');
+        // Linear progression: resume from the slot's saved room (or 1)
+        const room = (s.exists && s.room) || 1;
+        this.scene.start('LevelIntro', { levelId: room });
       }
     }));
     items.push({ label: 'ERASE A SLOT', action: () => this.scene.start('EraseSelect') });
@@ -238,7 +248,7 @@ export class RemapScene extends Phaser.Scene {
   create() {
     starfield(this);
     title(this, 36, 'REMAP CONTROLS');
-    const actions: Action[] = ['left', 'right', 'jump', 'create', 'destroy', 'fire', 'pause'];
+    const actions: Action[] = ['left', 'right', 'up', 'jump', 'create', 'destroy', 'fire', 'pause'];
     const km = () => getSettings().keymap;
     const labels = () =>
       actions.map((a) => `${a.toUpperCase().padEnd(8)} ${km()[a][0]}`).concat(['BACK']);

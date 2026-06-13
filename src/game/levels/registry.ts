@@ -1,0 +1,67 @@
+import type { RoomData } from '@/types';
+import { ROOMS } from './rooms';
+import { ZODIAC, constellationOfRoom as _constellationOfRoom } from '../constants';
+
+// Re-export for existing imports
+export const constellationOfRoom = _constellationOfRoom;
+
+export function getRoom(id: number): RoomData {
+  const r = ROOMS.find((r) => r.id === id);
+  if (!r) throw new Error(`room ${id} missing`);
+  return r;
+}
+
+export const roomTitle = (id: number) =>
+  id <= 48
+    ? `${ZODIAC[constellationOfRoom(id)]} ${((id - 1) % 4) + 1}`
+    : id === 49
+    ? 'Mystic Chamber'
+    : id <= 112
+    ? `${ZODIAC[id - 101]} Bonus`
+    : id === 201
+    ? 'Page of Time'
+    : id === 202
+    ? 'Page of Space'
+    : 'Princess Room';
+
+export const wingsTarget = (room: number) => room + 6;
+export const WINGS_ROOMS = [7, 15, 23, 31, 39];
+
+export interface ProgressCtx {
+  seals: number;
+  sealHere: boolean;
+}
+
+export function nextRoom(cur: number, ctx: ProgressCtx): number {
+  // Return from bonus rooms: bonus room N (101..112) -> after its 4th stage
+  if (cur >= 101 && cur <= 112) return (cur - 100) * 4 + 1;
+  if (cur === 201) return 21;   // Page of Time -> Leo 1
+  if (cur === 202) return 45;   // Page of Space -> Pisces 1
+  if (cur === 203) return 49;   // Princess Chamber -> Solomon Chamber
+
+  // Special unlock checks (order matters: check specials before bonus)
+  // Room 20 (Leo 4): 5+ seals unlock Page of Time
+  if (cur === 20 && ctx.seals >= 5) return 201;
+  // Room 44 (Aquarius 4): 9+ seals unlock Page of Space
+  if (cur === 44 && ctx.seals >= 9) return 202;
+  // Room 48 (Pisces 4): 8+ seals unlock Princess Chamber
+  if (cur === 48 && ctx.seals >= 8) return 203;
+
+  // Bonus room: completing the 4th room of a constellation with sealHere
+  if (cur % 4 === 0 && cur <= 48 && ctx.sealHere) return 100 + cur / 4;
+
+  return cur + 1;
+}
+
+export type Ending = 'best' | 'princess' | 'pages' | 'normal';
+
+export function endingFor(s: {
+  princess: boolean;
+  pageTime: boolean;
+  pageSpace: boolean;
+}): Ending {
+  if (s.princess && s.pageTime && s.pageSpace) return 'best';
+  if (s.princess) return 'princess';
+  if (s.pageTime && s.pageSpace) return 'pages';
+  return 'normal';
+}

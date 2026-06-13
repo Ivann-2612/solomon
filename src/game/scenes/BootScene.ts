@@ -15,6 +15,20 @@ export class BootScene extends Phaser.Scene {
     this.registry.set('fire', false);
     this.registry.set('enemiesDefeated', 0);
     this.registry.set('itemsCollected', 0);
+
+    // Dev shortcut: ?room=N goes directly to a room (bypasses menus)
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const roomParam = params.get('room');
+      if (roomParam) {
+        const roomId = parseInt(roomParam, 10);
+        if (!isNaN(roomId)) {
+          this.scene.start('Game', { roomId });
+          return;
+        }
+      }
+    } catch { /* ignore */ }
+
     this.scene.start('Splash');
   }
 }

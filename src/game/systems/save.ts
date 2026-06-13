@@ -10,7 +10,11 @@ function emptySlot(): SaveSlot {
     unlockedStage: 1,
     completedStages: [],
     secretsUnlocked: [],
-    seals: [],
+    solomonSeals: [],
+    constellationSeals: [],
+    fairies: 0,
+    room: 1,
+    wingsSkipsUsed: 0,
     crowns: [],
     orbs: [],
     pages: { time: false, space: false },
@@ -77,6 +81,30 @@ export const SaveSystem = {
     s.exists = true;
     mut(s);
     write(f);
+  },
+  /**
+   * Autosave after each room: persist resume point + run inventory.
+   * Seal arrays are unioned (they're also written live at pickup time).
+   */
+  autosave(data: {
+    room: number;
+    fairies: number;
+    solomonSeals?: number[];
+    constellationSeals?: number[];
+    wingsSkipsUsed?: number;
+  }) {
+    SaveSystem.update((s) => {
+      s.room = data.room;
+      s.fairies = data.fairies;
+      if (data.solomonSeals)
+        s.solomonSeals = Array.from(new Set([...s.solomonSeals, ...data.solomonSeals]));
+      if (data.constellationSeals)
+        s.constellationSeals = Array.from(
+          new Set([...s.constellationSeals, ...data.constellationSeals])
+        );
+      if (data.wingsSkipsUsed != null)
+        s.wingsSkipsUsed = Math.max(s.wingsSkipsUsed, data.wingsSkipsUsed);
+    });
   },
   erase(slot: number) {
     const f = load();

@@ -12,13 +12,13 @@ import {
 } from './scenes/MenuScenes';
 import {
   WorldMapScene,
-  StageSelectScene,
   LevelIntroScene,
   PauseScene,
   LevelCompleteScene,
   SecretFoundScene,
   GameOverScene,
-  LeaderboardScene
+  LeaderboardScene,
+  EndingScene
 } from './scenes/FlowScenes';
 import { GameScene } from './scenes/GameScene';
 
@@ -50,14 +50,14 @@ export function createGame(parent: HTMLElement): Phaser.Game {
       RemapScene,
       CreditsScene,
       WorldMapScene,
-      StageSelectScene,
       LevelIntroScene,
       GameScene,
       PauseScene,
       LevelCompleteScene,
       SecretFoundScene,
       GameOverScene,
-      LeaderboardScene
+      LeaderboardScene,
+      EndingScene
     ]
   });
 }

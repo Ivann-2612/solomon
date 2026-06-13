@@ -788,51 +788,73 @@ export class GameScene extends Phaser.Scene implements EnemyHost {
   /* ---- HUD (Task 10) ---- */
 
   private createHud() {
-    const font = { fontFamily: "monospace", fontSize: "10px" };
+    const font    = { fontFamily: "monospace", fontSize: "10px" };
+    const fontSm  = { fontFamily: "monospace", fontSize: "9px" };
     const fix = <T extends Phaser.GameObjects.Components.ScrollFactor &
       Phaser.GameObjects.Components.Depth>(o: T, depth = 31): T => {
       o.setScrollFactor(0);
       o.setDepth(depth);
       return o;
     };
+    const gfx = fix(this.add.graphics(), 30);
 
-    // Top strip: 1P  <score>   BONUS <bonus>
-    fix(this.add.rectangle(GAME_W / 2, HUD_H / 2, GAME_W, HUD_H, 0x000000), 30);
-    fix(this.add.text(6, 7, "1P", { ...font, color: "#f4f4f4" }));
+    // ── Top bar ─────────────────────────────────────────────────────────────
+    // Dark navy base
+    gfx.fillStyle(0x08081e, 1);
+    gfx.fillRect(0, 0, GAME_W, HUD_H);
+    // Subtle purple gradient strip
+    gfx.fillStyle(0x1a0a2e, 0.45);
+    gfx.fillRect(0, 0, GAME_W, HUD_H - 2);
+    // Gold accent line at bottom of top bar
+    gfx.fillStyle(0xffc83c, 1);
+    gfx.fillRect(0, HUD_H - 2, GAME_W, 2);
+    // Dark purple thin separator inside
+    gfx.fillStyle(0x5d2e99, 0.6);
+    gfx.fillRect(0, HUD_H - 3, GAME_W, 1);
+
+    // 1P label
+    fix(this.add.text(5, 7, "1P", { ...fontSm, color: "#9a7acc" }));
+    // Score — gold, prominent
     this.hudScore = fix(
-      this.add.text(30, 7, "000000", { ...font, color: "#ffc83c" }),
+      this.add.text(22, 6, "000000", { ...font, color: "#ffc83c" }),
     );
+    // BONUS label
     fix(
-      this.add
-        .text(GAME_W - 50, 7, "BONUS", { ...font, color: "#2ecc71" })
-        .setOrigin(1, 0),
+      this.add.text(GAME_W - 54, 7, "BONUS", { ...fontSm, color: "#2ecc71" }).setOrigin(1, 0),
     );
+    // Bonus value
     this.hudBonus = fix(
-      this.add
-        .text(GAME_W - 6, 7, "00000", { ...font, color: "#f4f4f4" })
-        .setOrigin(1, 0),
+      this.add.text(GAME_W - 4, 6, "00000", { ...font, color: "#f4f4f4" }).setOrigin(1, 0),
     );
 
-    // Bottom status bar (overlays the bottom border row)
+    // ── Bottom bar ──────────────────────────────────────────────────────────
     const barY = GAME_H - HUD_H; // 312
-    fix(
-      this.add.rectangle(GAME_W / 2, barY + HUD_H / 2, GAME_W, HUD_H, 0x000000),
-      30,
-    );
+    // Gold accent line at top of bottom bar
+    gfx.fillStyle(0xffc83c, 1);
+    gfx.fillRect(0, barY, GAME_W, 2);
+    gfx.fillStyle(0x5d2e99, 0.6);
+    gfx.fillRect(0, barY + 2, GAME_W, 1);
+    // Dark navy base
+    gfx.fillStyle(0x08081e, 1);
+    gfx.fillRect(0, barY + 3, GAME_W, HUD_H - 3);
+
+    // Fairy count — muted label
     this.hudFairy = fix(
-      this.add.text(6, barY + 7, "FAIRY..0", { ...font, color: "#f4f4f4" }),
+      this.add.text(5, barY + 7, "FAIRY..0", { ...fontSm, color: "#9a7acc" }),
     );
-    this.hudLives = this.add.container(86, barY + 7).setDepth(32);
+    // Lives hearts container
+    this.hudLives = this.add.container(88, barY + 4).setDepth(32);
     this.hudLives.setScrollFactor(0);
+    // Stage name — centered
     this.hudMid = fix(
       this.add
-        .text(GAME_W / 2 + 40, barY + 7, "", { ...font, color: "#ffc83c" })
+        .text(GAME_W / 2 + 30, barY + 6, "", { ...fontSm, color: "#ffc83c" })
         .setOrigin(0.5, 0),
     );
-    // -DEMO- slot: reserved, hidden unless demo mode is active
+    // Demo slot
     fix(
       this.add
-        .text(GAME_W - 6, barY + 7, "-DEMO-", { ...font, color: "#59d9e6" })
+        .text(GAME_W - 4, barY + 7, "-DEMO-", { ...fontSm, color: "#59d9e6" })
         .setOrigin(1, 0),
     ).setVisible(!!this.registry.get("demoMode"));
   }
@@ -848,13 +870,14 @@ export class GameScene extends Phaser.Scene implements EnemyHost {
       playH / 2,
       GAME_W,
       playH,
-      hc ? 0x000000 : 0x12121e,
+      hc ? 0x000000 : 0x080816,
     );
     if (hc) return;
 
     const gfx = this.add.graphics();
 
-    gfx.fillStyle(0x0a0a16, 0.55);
+    // Deep space bg — layered dark panels with slight depth variation
+    gfx.fillStyle(0x06060f, 0.7);
     for (let row = 0; row < 7; row++) {
       for (let col = 0; col < 4; col++) {
         const bx = col * 90 + (row % 2) * 45;
@@ -862,9 +885,13 @@ export class GameScene extends Phaser.Scene implements EnemyHost {
         gfx.fillRect(bx, by, 88, 42);
       }
     }
-
-    gfx.fillStyle(tint, 0.04);
+    // World color tint — stronger for vibrancy
+    gfx.fillStyle(tint, 0.07);
     gfx.fillRect(0, 0, GAME_W, playH);
+    // Subtle vignette edges — left/right darker strip
+    gfx.fillStyle(0x000000, 0.25);
+    gfx.fillRect(0, 0, 14, playH);
+    gfx.fillRect(GAME_W - 14, 0, 14, playH);
 
     const ci = world % CONSTELLATIONS.length;
     const con = CONSTELLATIONS[ci];

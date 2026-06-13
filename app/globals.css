@@ -72,16 +72,47 @@ canvas {
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 9999px;
-  border: 2px solid rgba(255, 200, 60, 0.5);
-  background: rgba(40, 30, 80, 0.45);
+  border-radius: 14px;
+  border: 1.5px solid rgba(255, 200, 60, 0.45);
+  background: rgba(6, 6, 26, 0.72);
   color: #ffc83c;
   font-family: monospace;
   font-weight: bold;
   touch-action: none;
   -webkit-tap-highlight-color: transparent;
+  box-shadow: 0 2px 12px rgba(140, 75, 217, 0.25), inset 0 1px 0 rgba(255,200,60,0.15);
+  transition: background 0.08s, transform 0.08s;
 }
 .mk-btn:active,
 .mk-btn.pressed {
-  background: rgba(255, 200, 60, 0.35);
+  background: rgba(255, 200, 60, 0.22);
+  transform: scale(0.92);
+}
+
+/* Fullscreen toggle button */
+.mk-fs-btn {
+  position: fixed;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 60;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  border: 1.5px solid rgba(255, 200, 60, 0.4);
+  background: rgba(6, 6, 26, 0.75);
+  color: #ffc83c;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  padding: 0;
+  line-height: 1;
+}
+.mk-fs-btn:active {
+  background: rgba(255, 200, 60, 0.25);
+  transform: translateY(-50%) scale(0.88);
 }

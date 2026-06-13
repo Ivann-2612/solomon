@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type Phaser from 'phaser';
 import { useSettings } from '@/stores/settingsStore';
 import { setPad } from '@/game/systems/input';
@@ -12,8 +12,30 @@ export default function GameShell() {
   const gameRef = useRef<Phaser.Game | null>(null);
   const [inGame, setInGame] = useState(false);
   const [isTouch, setIsTouch] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const [hostStyle, setHostStyle] = useState<React.CSSProperties>({});
   const keymap = useSettings((s) => s.keymap);
+
+  const toggleFullscreen = useCallback(() => {
+    const el = document.documentElement;
+    if (!document.fullscreenElement) {
+      el.requestFullscreen?.({ navigationUI: 'hide' }).catch(() => {
+        (el as any).webkitRequestFullscreen?.();
+      });
+    } else {
+      document.exitFullscreen?.().catch(() => {});
+    }
+  }, []);
+
+  useEffect(() => {
+    const onChange = () => setIsFullscreen(!!document.fullscreenElement);
+    document.addEventListener('fullscreenchange', onChange);
+    document.addEventListener('webkitfullscreenchange', onChange);
+    return () => {
+      document.removeEventListener('fullscreenchange', onChange);
+      document.removeEventListener('webkitfullscreenchange', onChange);
+    };
+  }, []);
 
   // boot Phaser
   useEffect(() => {
@@ -110,6 +132,15 @@ export default function GameShell() {
     <div id="game-root">
       <div ref={hostRef} style={hostStyle} id="game-canvas-host" />
       {isTouch && <MobileControls visible={inGame} />}
+      {isTouch && (
+        <button
+          className="mk-fs-btn"
+          onClick={toggleFullscreen}
+          aria-label={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
+        >
+          {isFullscreen ? '⊡' : '⛶'}
+        </button>
+      )}
       {/* Landscape hint — only shown in CSS portrait media query */}
       <div id="rotate-hint">
         <div id="rotate-icon">&#8635;</div>

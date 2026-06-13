@@ -39,36 +39,60 @@ function makeParticle(scene: Phaser.Scene, key: string, color: string, size = 3)
 
 // ---- Entity sprites 8x8 (scale x2 = 16x16) ----
 
-// Dana – wizard with pointed hat, purple robe, gold trim
+// Dana – wizard, 12×16 pixmap (scale×2 = 24×32 sprite)
 const DANA_IDLE = [
-  '..pppp..',  // hat tip
-  '.PPPpPP.',  // hat body
-  '.SSSSSS.',  // face
-  'KSSoSSKK',  // face detail (o=nostril/dark)
-  '.KGGPPK.',  // chest: gold trim + purple robe
-  'KPPPPPKK',  // robe body
-  '.KPPPPK.',  // lower robe
-  '..K..K..',  // legs
+  '....YY......',  // 0  hat tip sparkle (Y=light gold)
+  '....pp......',  // 1  hat tip
+  '...pPPp.....',  // 2  hat upper
+  '..pPPPPp....',  // 3  hat mid
+  '.pPPPPPPp...',  // 4  hat lower (widest)
+  '.GGGGGGGGo..',  // 5  gold brim, o=shadow right
+  '.KSSGoGSSK..',  // 6  face: G=gold eyes, o=dark nose
+  '.KSSSoSSSK..',  // 7  chin/face lower
+  'KKGGGGGGGGKK',  // 8  gold collar
+  'KPPpPPPpPPKK',  // 9  robe shoulders
+  'KPPpGGGpPPKK',  // 10 belt buckle (G=gold)
+  'KPPpPPPpPPKK',  // 11 robe lower
+  '.KPPpPPpPPK.',  // 12 robe hem
+  '..KPPpPPPK..',  // 13 robe tail
+  '..KOK..KOK..',  // 14 boots (O=bright orange)
+  '..KoK..KoK..',  // 15 boot soles (o=dark orange)
 ];
 const DANA_WALK = [
-  '..pppp..',
-  '.PPPpPP.',
-  '.SSSSSS.',
-  'KSSoSSKK',
-  '.KGGPPK.',
-  'KPPPPPKK',
-  '.KPP.PK.',
-  '.KP...K.',
+  '....YY......',
+  '....pp......',
+  '...pPPp.....',
+  '..pPPPPp....',
+  '.pPPPPPPp...',
+  '.GGGGGGGGo..',
+  '.KSSGoGSSK..',
+  '.KSSSoSSSK..',
+  'KKGGGGGGGGKK',
+  'KPPpPPPpPPKK',
+  'KPPpGGGpPPKK',
+  'KPPpPPPpPPKK',
+  '.KPPpPPpPPK.',
+  '..KPPpPPPK..',
+  '..KOK...KoK.',  // stride: left foot forward (O=bright), right trailing (o=dark)
+  '..KoK...KKK.',  // soles: left down, right foot lifted
 ];
 const DANA_CAST = [
-  '..pppp..',
-  '.PPPpPP.',
-  '.SSSSSS.',
-  'KSSoSSKK',
-  '.KGGPPK.',
-  'KPPPGGGG',  // arm extended with gold staff
-  '.KPPPPK.',
-  '..K..K..',
+  '....YY......',
+  '....pp......',
+  '...pPPp.....',
+  '..pPPPPp....',
+  '.pPPPPPPp...',
+  '.GGGGGGGGo..',
+  '.KSSGoGSSK..',
+  '.KSSSoSSSK..',
+  'KKGGGGGGGGKK',
+  'KPPpPPCCCCoo',  // arm extended: CCCC=cyan staff, oo=orange glow tip
+  'KPPpGGGpPPKK',  // belt same
+  'KPPpPPPpPPKK',
+  '.KPPpPPpPPK.',
+  '..KPPpPPPK..',
+  '..KOK..KOK..',
+  '..KoK..KoK..',
 ];
 
 // Imp – green goblin, horns, yellow eyes
@@ -318,41 +342,36 @@ const ORB = [
 
 // ---- Tiles 12x12 (scale x2 = 24x24) ----
 
-// Stone tile — bright white face so world tint colors it vividly
-// K border = dark mortar/grout between tiles
-// W = main face (tints to world color)
-// w = shadow row at bottom for slight 3-D depth
+// Stone tile — 3-D bevel: W=bright top+left highlight, w=muted face, both tinted by world color
 const STONE = [
   'KKKKKKKKKKKK',
-  'KWWWWWWWWWWK',
-  'KWWWWWWWWWWK',
-  'KWWWWWWWWWWK',
-  'KWWWWWWWWWWK',
-  'KWWWWWWWWWWK',
-  'KWWWWWWWWWWK',
-  'KWWWWWWWWWWK',
-  'KWWWWWWWWWWK',
-  'KWWWWWWWWWWK',
-  'KwwwwwwwwwwK',
+  'KWWWWWWWWWWK',  // top highlight row
+  'KWWwwwwwwwwK',  // left highlight + muted face
+  'KWWwwwwwwwwK',
+  'KWWwwwwwwwwK',
+  'KWWwwwwwwwwK',
+  'KWWwwwwwwwwK',
+  'KWWwwwwwwwwK',
+  'KWWwwwwwwwwK',
+  'KWWwwwwwwwwK',
+  'KwwwwwwwwwwK',  // bottom shadow
   'KKKKKKKKKKKK',
 ];
 
-// Magic block — amber/sand colored, fixed (NOT tinted), with inner rune
-// N=amber bright, n=amber dark, F=amber highlight
-// K=outline, G=gold rune, P=purple center, Y=light gold glow
+// Magic block — amber with inner glow effect: N=amber, n=dark amber, F=highlight, Y=bright center
 const MAGIC = [
   'KKKKKKKKKKKK',
-  'KFNNNNNNNnKK',
-  'KFNKKKKKNnKK',
-  'KFNKGGGGNnKK',
-  'KFNKGPPGNnKK',
-  'KFNKGPYGNnKK',
-  'KFNKGPPGNnKK',
-  'KFNKGGGGNnKK',
-  'KFNKKKKKNnKK',
-  'KFNNNNNNNnKK',
+  'KFNNNNNNNNnK',  // top: amber highlight
+  'KFNnnnnnnnNK',  // inner dark surround
+  'KFNnGGGGnnNK',  // gold inner frame
+  'KFNnGYYGnnNK',  // bright glow center (Y=light gold)
+  'KFNnGYYGnnNK',
+  'KFNnGYYGnnNK',
+  'KFNnGYYGnnNK',
+  'KFNnGGGGnnNK',
+  'KFNnnnnnnnNK',
+  'KFNNNNNNNNnK',  // bottom
   'KKKKKKKKKKKK',
-  'KKKKKKKKKKnK',
 ];
 
 // Door closed — ornate arch, purple/dark

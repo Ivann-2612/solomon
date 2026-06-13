@@ -3,14 +3,16 @@ import { RUN_SPEED, JUMP_VELOCITY } from '../constants';
 import { pad, justPressed } from '../systems/input';
 import { Audio } from '../audio/audio';
 
+// Dana sprite is now 24×32 (12×16 pixmap at scale 2).
+// Physics body covers face-to-feet, skipping the tall wizard hat.
 const NORMAL_W = 12;
-const NORMAL_H = 15;
+const NORMAL_H = 20;
+const NORMAL_OX = 6;
+const NORMAL_OY = 12;
 const DUCK_W   = 12;
-const DUCK_H   = 9;
-const NORMAL_OX = 2;
-const NORMAL_OY = 1;
-const DUCK_OX   = 2;
-const DUCK_OY   = 7;
+const DUCK_H   = 12;
+const DUCK_OX   = 6;
+const DUCK_OY   = 20;
 
 export class Player extends Phaser.Physics.Arcade.Sprite {
   facing: 1 | -1 = 1;

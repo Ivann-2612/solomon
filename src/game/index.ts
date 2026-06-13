@@ -12,7 +12,6 @@ import {
 } from './scenes/MenuScenes';
 import {
   WorldMapScene,
-  StageSelectScene,
   LevelIntroScene,
   PauseScene,
   LevelCompleteScene,
@@ -51,7 +50,6 @@ export function createGame(parent: HTMLElement): Phaser.Game {
       RemapScene,
       CreditsScene,
       WorldMapScene,
-      StageSelectScene,
       LevelIntroScene,
       GameScene,
       PauseScene,

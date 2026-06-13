@@ -371,5 +371,3 @@ export class EndingScene extends Phaser.Scene {
   }
 }
 
-// Alias kept for backward-compat with index.ts
-export const StageSelectScene = WorldMapScene;

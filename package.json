@@ -4,9 +4,9 @@
   "private": true,
   "description": "Mystic Key - browser puzzle-platform arcade game",
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev -p 3008",
     "build": "next build",
-    "start": "serve out -l 3000",
+    "start": "serve out -l 3008",
     "validate-levels": "tsx scripts/validate-levels.ts",
     "lint": "next lint",
     "test": "vitest run"

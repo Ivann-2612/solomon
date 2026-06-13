@@ -1,7 +1,7 @@
 export type FireballKind = 'normal' | 'super';
 
 export class Inventory {
-  fireballs: FireballKind[] = [];
+  fireballs: FireballKind[] = ['normal', 'normal', 'normal'];
   fairies = 0;
   rangeTiles = 3;
   onExtraLife: () => void = () => {};

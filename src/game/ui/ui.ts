@@ -18,17 +18,17 @@ export function txt(
 }
 
 export function title(scene: Phaser.Scene, y: number, s: string) {
-  // Drop shadow
-  scene.add.text(GAME_W / 2 + 2, y + 2, s, {
-    fontFamily: FONT, fontSize: '20px', color: '#000000'
-  }).setOrigin(0.5).setAlpha(0.6);
+  // Outer glow shadow (offset)
+  scene.add.text(GAME_W / 2 + 2, y + 3, s, {
+    fontFamily: FONT, fontSize: '26px', color: '#000000'
+  }).setOrigin(0.5).setAlpha(0.7);
   const t = scene.add
     .text(GAME_W / 2, y, s, {
       fontFamily: FONT,
-      fontSize: '20px',
-      color: '#ffd84a',
+      fontSize: '26px',
+      color: '#ffe55a',
       stroke: '#5d2e99',
-      strokeThickness: 3,
+      strokeThickness: 4,
     })
     .setOrigin(0.5);
   return t;
@@ -55,7 +55,7 @@ export class Menu {
   private idx = 0;
   private scene: Phaser.Scene;
 
-  constructor(scene: Phaser.Scene, x: number, y: number, gap: number, items: MenuItem[], size = 12) {
+  constructor(scene: Phaser.Scene, x: number, y: number, gap: number, items: MenuItem[], size = 14) {
     this.scene = scene;
     this.items = items;
     items.forEach((it, i) => {

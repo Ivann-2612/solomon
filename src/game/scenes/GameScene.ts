@@ -323,6 +323,7 @@ export class GameScene extends Phaser.Scene implements EnemyHost {
   private hudBonus!: Phaser.GameObjects.Text;
   private hudMid!: Phaser.GameObjects.Text;
   private hudFairy!: Phaser.GameObjects.Text;
+  private hudFire!: Phaser.GameObjects.Text;
   private hudLives!: Phaser.GameObjects.Container;
   private facingArrow!: Phaser.GameObjects.Text;
   private lastHudLives = -1;
@@ -463,6 +464,9 @@ export class GameScene extends Phaser.Scene implements EnemyHost {
       th(this.room.door.y),
       "door-closed",
     );
+    // Subtle purple pulse on door to mark it as the goal
+    this.addGlow(this.doorSprite, 0x8c4bd9, 2);
+    this.tweens.add({ targets: this.doorSprite, alpha: 0.75, duration: 1100, yoyo: true, repeat: -1 });
 
     // Key
     this.keySprite = this.physics.add.staticSprite(
@@ -850,6 +854,10 @@ export class GameScene extends Phaser.Scene implements EnemyHost {
       this.add
         .text(GAME_W / 2 + 30, barY + 6, "", { ...fontSm, color: "#ffc83c" })
         .setOrigin(0.5, 0),
+    );
+    // Fireball dots — right side of bottom bar (◆ = loaded, ◇ = empty)
+    this.hudFire = fix(
+      this.add.text(GAME_W - 6, barY + 6, "◆◆◆", { ...fontSm, color: "#ff7722" }).setOrigin(1, 0),
     );
     // Demo slot
     fix(
@@ -1916,11 +1924,15 @@ export class GameScene extends Phaser.Scene implements EnemyHost {
       this.hudBonus.setColor(this.bonus.value % 2 ? "#e23b3b" : "#ffc83c");
     else this.hudBonus.setColor("#f4f4f4");
 
-    // Bottom bar: fairy count, room title + KEY/jars, life icons
+    // Bottom bar: fairy count, room title + KEY, life icons
     this.hudFairy.setText(`FAIRY..${this.inv.fairies}`);
-    this.hudMid.setText(
-      `${roomTitle(this.room.id)}${this.hasKey ? " [KEY]" : ""}${jarStr}`,
-    );
+    this.hudMid.setText(`${roomTitle(this.room.id)}${this.hasKey ? " [KEY]" : ""}`);
+
+    // Fireball dots: ◆ = loaded (orange), ◇ = spent (dark)
+    const dots = ['◇', '◇', '◇'];
+    for (let i = 0; i < Math.min(jars, 3); i++) dots[i] = '◆';
+    this.hudFire.setText(dots.join(''));
+    this.hudFire.setColor(jars > 0 ? '#ff7722' : '#3d2d1a');
 
     // Life hearts
     if (lives !== this.lastHudLives) {

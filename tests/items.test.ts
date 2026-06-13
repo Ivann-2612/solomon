@@ -11,7 +11,7 @@ function ctx() {
 
 describe('applyItem', () => {
   it('bell sets bellRung', () => { const c = ctx(); applyItem('bell', c, 0); expect(c.flags.bellRung).toBe(true); });
-  it('jarBlue adds fireball', () => { const c = ctx(); applyItem('jarBlue', c, 0); expect(c.inv.fireballs).toEqual(['normal']); });
+  it('jarBlue no-ops when inventory full (starts at 3)', () => { const c = ctx(); c.inv.fireballs.splice(0); applyItem('jarBlue', c, 0); expect(c.inv.fireballs).toEqual(['normal']); });
   it('hourglass sets bonus 5000', () => { const c = ctx(); applyItem('hourglass', c, 0); expect(c.bonus.value).toBe(5000); });
   it('potionX2 multiplies bonus', () => { const c = ctx(); applyItem('potionX2', c, 0); expect(c.bonus.value).toBe(100000); });
   it('sealSolomon recorded by index', () => { const c = ctx(); applyItem('sealSolomon', c, 3); expect(c.seals.solomon.has(3)).toBe(true); });

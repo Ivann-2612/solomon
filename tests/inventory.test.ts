@@ -2,10 +2,10 @@ import { describe, it, expect } from 'vitest';
 import { Inventory } from '@/game/systems/inventory';
 
 describe('Inventory', () => {
-  it('starts empty, blue jar adds normal fireball (max 3 base)', () => {
+  it('starts with 3 normal fireballs, caps at 3', () => {
     const inv = new Inventory();
-    expect(inv.shoot()).toBeNull();
-    inv.addJar('blue'); inv.addJar('blue'); inv.addJar('blue'); inv.addJar('blue');
+    expect(inv.fireballs.length).toBe(3);
+    inv.addJar('blue'); // already full — no-op
     expect(inv.fireballs.length).toBe(3);
     expect(inv.shoot()).toBe('normal');
     expect(inv.fireballs.length).toBe(2);

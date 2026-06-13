@@ -11,30 +11,65 @@ function sceneEvent(name: string) {
   window.dispatchEvent(new CustomEvent('mk-scene', { detail: name }));
 }
 
+/** Deep-space background used by all menu screens. */
 function starfield(scene: Phaser.Scene) {
-  // Dark stone background
-  scene.add.rectangle(GAME_W / 2, GAME_H / 2, GAME_W, GAME_H, 0x0c0c18);
-  // Stone wall texture blocks
+  // Base — deep indigo
+  scene.add.rectangle(GAME_W / 2, GAME_H / 2, GAME_W, GAME_H, 0x06061a);
+
   const gfx = scene.add.graphics();
-  gfx.fillStyle(0x080810, 0.7);
-  for (let row = 0; row < 8; row++) {
-    for (let col = 0; col < 5; col++) {
-      const bx = col * 72 + (row % 2) * 36;
-      const by = row * 42;
-      gfx.fillRect(bx, by, 70, 40);
+
+  // Subtle nebula patches (radial gradient simulation)
+  const nebulae: [number, number, number, number][] = [
+    [60,  50,  70, 0x1a0a3a],
+    [260, 190, 60, 0x0a1a3a],
+    [160, 120, 90, 0x12082a],
+  ];
+  for (const [nx, ny, nr, nc] of nebulae) {
+    for (let r = nr; r > 0; r -= 8) {
+      gfx.fillStyle(nc, 0.04 * (1 - r / nr));
+      gfx.fillCircle(nx, ny, r);
     }
   }
-  // Glowing stars/particles
-  for (let i = 0; i < 30; i++) {
-    const x = (i * 113 + 7) % GAME_W;
-    const y = (i * 79 + 13) % GAME_H;
-    const col = i % 6 === 0 ? 0xffc83c : i % 6 === 1 ? 0x59d9e6 : 0x3d3d7a;
-    const star = scene.add.rectangle(x, y, i % 4 === 0 ? 2 : 1, i % 4 === 0 ? 2 : 1, col).setAlpha(0.5);
-    scene.tweens.add({ targets: star, alpha: 0.1, duration: 800 + i * 60, yoyo: true, repeat: -1, delay: i * 40 });
+
+  // Stars — three layers (distant / mid / bright)
+  const STAR_DATA: [number, number, number, number, number][] = [];
+  for (let i = 0; i < 55; i++) {
+    const x = (i * 97  + 11) % GAME_W;
+    const y = (i * 67  + 17) % GAME_H;
+    const sz  = i < 35 ? 1 : 2;
+    const col = i % 7 === 0 ? 0xffc83c
+               : i % 7 === 1 ? 0x59d9e6
+               : i % 7 === 2 ? 0xc084f5
+               : 0xa8b4cc;
+    const spd = 700 + i * 55;
+    STAR_DATA.push([x, y, sz, col, spd]);
   }
-  // Decorative border glow
-  gfx.lineStyle(2, 0x8c4bd9, 0.4);
+  for (const [x, y, sz, col, spd] of STAR_DATA) {
+    const star = scene.add.rectangle(x, y, sz, sz, col).setAlpha(0.6);
+    scene.tweens.add({ targets: star, alpha: 0.08, duration: spd, yoyo: true, repeat: -1, delay: (x * 3) % 400 });
+  }
+
+  // Ornate double border — gold outer, purple inner
+  gfx.lineStyle(2, 0xffc83c, 0.55);
   gfx.strokeRect(2, 2, GAME_W - 4, GAME_H - 4);
+  gfx.lineStyle(1, 0x8c4bd9, 0.5);
+  gfx.strokeRect(5, 5, GAME_W - 10, GAME_H - 10);
+
+  // Corner accent diamonds
+  const corners: [number, number][] = [[6, 6], [GAME_W - 6, 6], [6, GAME_H - 6], [GAME_W - 6, GAME_H - 6]];
+  for (const [cx, cy] of corners) {
+    gfx.fillStyle(0xffc83c, 0.7);
+    gfx.fillRect(cx - 3, cy - 1, 6, 2);
+    gfx.fillRect(cx - 1, cy - 3, 2, 6);
+  }
+}
+
+/** Horizontal gold separator line with faded ends. */
+function separator(scene: Phaser.Scene, y: number) {
+  const g = scene.add.graphics();
+  g.fillStyle(0xffc83c, 0.15); g.fillRect(20, y, GAME_W - 40, 1);
+  g.fillStyle(0xffc83c, 0.55); g.fillRect(60, y, GAME_W - 120, 1);
+  g.fillStyle(0xffc83c, 0.9);  g.fillRect(100, y, GAME_W - 200, 1);
 }
 
 /* ---------------- Splash ---------------- */
@@ -45,18 +80,48 @@ export class SplashScene extends Phaser.Scene {
   create() {
     sceneEvent('Splash');
     starfield(this);
-    title(this, 90, 'MYSTIC KEY');
-    txt(this, GAME_W / 2, 120, 'A Zodiac Puzzle Adventure', 10, '#8c4bd9');
-    const hint = txt(this, GAME_W / 2, 220, 'PRESS ANY KEY / TAP', 10, '#ffc83c');
-    this.tweens.add({ targets: hint, alpha: 0.2, duration: 600, yoyo: true, repeat: -1 });
+
+    // Gold sparkle burst around the title area
+    const sparks = this.add.particles(GAME_W / 2, 90, 'px-gold', {
+      speed: { min: 15, max: 55 },
+      scale: { start: 1.2, end: 0 },
+      lifespan: { min: 500, max: 900 },
+      quantity: 1,
+      frequency: 180,
+      emitZone: { type: 'random', source: new Phaser.Geom.Rectangle(-80, -12, 160, 24) } as any,
+    }).setDepth(5);
+
+    // Title — fade in then pulse
+    const t = title(this, 86, 'MYSTIC KEY').setAlpha(0);
+    this.tweens.add({ targets: t, alpha: 1, duration: 600, ease: 'Cubic.Out', onComplete: () => {
+      this.tweens.add({ targets: t, scaleX: 1.03, scaleY: 1.03, duration: 900, yoyo: true, repeat: -1, ease: 'Sine.InOut' });
+    }});
+
+    separator(this, 108);
+
+    // Subtitle
+    const sub = txt(this, GAME_W / 2, 120, 'A Zodiac Puzzle Adventure', 11, '#c084f5').setAlpha(0);
+    this.tweens.add({ targets: sub, alpha: 1, duration: 500, delay: 400 });
+
+    // Zodiac symbols row
+    const SYMBOLS = '♈♉♊♋♌♍♎♏♐♑♒♓';
+    const symRow = txt(this, GAME_W / 2, 140, SYMBOLS, 9, '#3d3d6a').setAlpha(0);
+    this.tweens.add({ targets: symRow, alpha: 0.6, duration: 600, delay: 700 });
+
+    // Press hint — blink
+    const hint = txt(this, GAME_W / 2, 210, 'PRESS ANY KEY  /  TAP TO START', 11, '#ffc83c').setAlpha(0);
+    this.tweens.add({ targets: hint, alpha: 1, duration: 400, delay: 900, onComplete: () => {
+      this.tweens.add({ targets: hint, alpha: 0.15, duration: 550, yoyo: true, repeat: -1 });
+    }});
+
     const go = () => {
+      sparks.destroy();
       Audio.unlock();
       Audio.sfx('ui');
       this.scene.start('MainMenu');
     };
     this.input.keyboard?.once('keydown', go);
     this.input.once('pointerdown', go);
-    // Attract/demo mode after 10 s idle on the title screen
     this.time.delayedCall(10000, () => {
       this.registry.set('demoMode', true);
       this.registry.set('lives', START_LIVES);
@@ -74,17 +139,27 @@ export class MainMenuScene extends Phaser.Scene {
   create() {
     sceneEvent('MainMenu');
     starfield(this);
-    title(this, 70, 'MYSTIC KEY');
-    txt(this, GAME_W / 2, 95, 'Dana and the Twelve Seals', 9, '#9a9ab0');
+
+    // Decorative title panel
+    const g = this.add.graphics();
+    g.fillStyle(0x0a0820, 0.85);
+    g.fillRoundedRect(GAME_W / 2 - 110, 52, 220, 38, 6);
+    g.lineStyle(1, 0xffc83c, 0.5);
+    g.strokeRoundedRect(GAME_W / 2 - 110, 52, 220, 38, 6);
+
+    title(this, 72, 'MYSTIC KEY');
+    separator(this, 96);
+    txt(this, GAME_W / 2, 106, 'Dana and the Twelve Seals', 11, '#9a7acc');
+
     Audio.music('menu');
+
     const menuItems: { label: string; action: () => void }[] = [
-      { label: 'START GAME', action: () => this.scene.start('SaveSelect') },
+      { label: 'START GAME',  action: () => this.scene.start('SaveSelect') },
       { label: 'LEVEL SELECT', action: () => this.scene.start('WorldMap') },
       { label: 'LEADERBOARD', action: () => this.scene.start('Leaderboard', { back: 'MainMenu' }) },
-      { label: 'SETTINGS', action: () => this.scene.start('Settings', { back: 'MainMenu' }) },
-      { label: 'CREDITS', action: () => this.scene.start('Credits', { victory: false }) }
+      { label: 'SETTINGS',    action: () => this.scene.start('Settings', { back: 'MainMenu' }) },
+      { label: 'CREDITS',     action: () => this.scene.start('Credits', { victory: false }) }
     ];
-    // show RESUME if there's a saved level
     try {
       const last = localStorage.getItem('mk-last-level');
       if (last) {
@@ -94,8 +169,11 @@ export class MainMenuScene extends Phaser.Scene {
         });
       }
     } catch { /* ignore */ }
-    new Menu(this, GAME_W / 2, 130, 22, menuItems);
-    txt(this, GAME_W / 2, GAME_H - 14, 'v1.0  ARROWS+Z/X/C/V  ENTER=OK', 8, '#3d3d7a');
+
+    new Menu(this, GAME_W / 2, 138, 24, menuItems);
+
+    separator(this, GAME_H - 22);
+    txt(this, GAME_W / 2, GAME_H - 13, 'ARROWS / WASD  •  Z=JUMP  X=BLOCK  C=BREAK  V=FIRE', 8, '#3d3d6a');
   }
 }
 

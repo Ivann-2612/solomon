@@ -135,36 +135,37 @@ export class PauseScene extends Phaser.Scene {
   }
   create(data: { levelId: number }) {
     sceneEvent('Pause');
-    this.add.rectangle(GAME_W / 2, GAME_H / 2, GAME_W, GAME_H, 0x000000, 0.6);
-    title(this, 90, 'PAUSED');
-    new Menu(this, GAME_W / 2, 140, 24, [
-      {
-        label: 'RESUME',
-        action: () => {
-          this.scene.resume('Game');
-          this.scene.stop();
-        }
-      },
-      {
-        label: 'RESTART LEVEL',
-        action: () => {
-          this.scene.stop('Game');
-          this.scene.start('Game', { levelId: data.levelId });
-        }
-      },
-      {
-        label: 'QUIT TO MAP',
-        action: () => {
-          Audio.stopMusic();
-          this.scene.stop('Game');
-          this.scene.start('WorldMap');
-        }
-      }
+
+    // Full-screen dim
+    this.add.rectangle(GAME_W / 2, GAME_H / 2, GAME_W, GAME_H, 0x000000, 0.72);
+
+    // Central glassmorphism card
+    const CX = GAME_W / 2, CY = GAME_H / 2 + 4;
+    const g = this.add.graphics();
+    g.fillStyle(0x07071e, 0.94);
+    g.fillRoundedRect(CX - 110, CY - 72, 220, 148, 12);
+    g.lineStyle(1.5, 0xffc83c, 0.55);
+    g.strokeRoundedRect(CX - 110, CY - 72, 220, 148, 12);
+    g.lineStyle(1, 0x8c4bd9, 0.3);
+    g.strokeRoundedRect(CX - 108, CY - 70, 216, 144, 10);
+    // Top accent strip
+    g.fillStyle(0xffc83c, 0.12);
+    g.fillRoundedRect(CX - 110, CY - 72, 220, 20, { tl: 12, tr: 12, bl: 0, br: 0 });
+
+    title(this, CY - 56, 'PAUSED');
+
+    // Thin separator
+    g.fillStyle(0xffc83c, 0.3);
+    g.fillRect(CX - 80, CY - 36, 160, 1);
+
+    const resume = () => { this.scene.resume('Game'); this.scene.stop(); };
+    new Menu(this, CX, CY + 16, 26, [
+      { label: 'RESUME',        action: resume },
+      { label: 'RESTART LEVEL', action: () => { this.scene.stop('Game'); this.scene.start('Game', { levelId: data.levelId }); } },
+      { label: 'QUIT TO MAP',   action: () => { Audio.stopMusic(); this.scene.stop('Game'); this.scene.start('WorldMap'); } },
     ]);
-    this.input.keyboard?.on('keydown-ESC', () => {
-      this.scene.resume('Game');
-      this.scene.stop();
-    });
+
+    this.input.keyboard?.on('keydown-ESC', resume);
   }
 }
 
@@ -180,39 +181,59 @@ export class LevelCompleteScene extends Phaser.Scene {
   }) {
     sceneEvent('LevelComplete');
     Audio.music('victory');
-    this.add.rectangle(GAME_W / 2, GAME_H / 2, GAME_W, GAME_H, 0x0a0a23);
-    title(this, 50, 'STAGE CLEAR!');
-    const s = data.stats;
-    txt(this, GAME_W / 2, 90, levelName(data.levelId).toUpperCase(), 11, '#ffc83c');
-    if (BOSS_ROOM_IDS.has(data.levelId)) {
-      txt(this, GAME_W / 2, 105, `☠ ${BOSS_ROOM_NAMES[data.levelId]?.toUpperCase()} DEFEATED ☠`, 8, '#e23b3b');
-    }
-    const statY = BOSS_ROOM_IDS.has(data.levelId) ? 120 : 115;
-    txt(this, GAME_W / 2, statY, `SCORE      ${s.score}`, 10);
-    txt(this, GAME_W / 2, statY + 15, `TIME BONUS ${s.timeBonus}`, 10);
-    txt(this, GAME_W / 2, statY + 30, `ITEMS ${s.items}  ENEMIES ${s.enemies}  SECRETS ${s.secrets}`, 9, '#9a9ab0');
 
-    // leaderboard entry
+    // Deep bg + subtle star hints
+    this.add.rectangle(GAME_W / 2, GAME_H / 2, GAME_W, GAME_H, 0x040412);
+    const g = this.add.graphics();
+    for (let i = 0; i < 20; i++) {
+      g.fillStyle(0xffffff, 0.07 + (i % 3) * 0.04);
+      g.fillRect((i * 97 + 11) % GAME_W, (i * 67 + 17) % GAME_H, 1, 1);
+    }
+
+    // Card
+    const CX = GAME_W / 2;
+    g.fillStyle(0x08082a, 0.97);
+    g.fillRoundedRect(CX - 130, 28, 260, 184, 10);
+    g.lineStyle(1.5, 0xffc83c, 0.6);
+    g.strokeRoundedRect(CX - 130, 28, 260, 184, 10);
+    // Gold top strip
+    g.fillStyle(0xffc83c, 0.1);
+    g.fillRoundedRect(CX - 130, 28, 260, 22, { tl: 10, tr: 10, bl: 0, br: 0 });
+
+    title(this, 44, 'STAGE CLEAR!');
+
+    const s = data.stats;
+    const isBoss = BOSS_ROOM_IDS.has(data.levelId);
+    txt(this, CX, 78, levelName(data.levelId).toUpperCase(), 12, '#ffc83c');
+    if (isBoss) {
+      txt(this, CX, 94, `☠ ${BOSS_ROOM_NAMES[data.levelId]?.toUpperCase()} DEFEATED ☠`, 8, '#e23b3b');
+    }
+
+    // Stats rows
+    const sy = isBoss ? 110 : 104;
+    g.fillStyle(0xffc83c, 0.18); g.fillRect(CX - 100, sy - 4, 200, 1);
+    const ROW_H = 14;
+    const rows: [string, string | number, string][] = [
+      ['SCORE',      s.score,    '#f4f4f4'],
+      ['TIME BONUS', s.timeBonus, '#59d9e6'],
+      ['ITEMS',      s.items,    '#c084f5'],
+      ['ENEMIES',    s.enemies,  '#e23b3b'],
+      ['SECRETS',    s.secrets,  '#ffc83c'],
+    ];
+    rows.forEach(([label, val, col], i) => {
+      txt(this, CX - 30, sy + 8 + i * ROW_H, label, 9, '#9a9ab0');
+      txt(this, CX + 50, sy + 8 + i * ROW_H, String(val), 9, col);
+    });
+    g.fillStyle(0xffc83c, 0.18); g.fillRect(CX - 100, sy + 8 + rows.length * ROW_H, 200, 1);
+
     SaveSystem.addScore(data.levelId, levelName(data.levelId), s.score + s.timeBonus);
 
-    const items = [];
+    const menuItems = [];
     if (data.nextId != null) {
-      items.push({
-        label: 'NEXT STAGE',
-        action: () => {
-          Audio.stopMusic();
-          this.scene.start('LevelIntro', { levelId: data.nextId });
-        }
-      });
+      menuItems.push({ label: 'NEXT STAGE', action: () => { Audio.stopMusic(); this.scene.start('LevelIntro', { levelId: data.nextId }); } });
     }
-    items.push({
-      label: 'WORLD MAP',
-      action: () => {
-        Audio.stopMusic();
-        this.scene.start('WorldMap');
-      }
-    });
-    new Menu(this, GAME_W / 2, 190, 24, items, 11);
+    menuItems.push({ label: 'WORLD MAP', action: () => { Audio.stopMusic(); this.scene.start('WorldMap'); } });
+    new Menu(this, CX, 194, 24, menuItems, 12);
   }
 }
 
@@ -245,10 +266,31 @@ export class GameOverScene extends Phaser.Scene {
   create(data: { levelId: number }) {
     sceneEvent('GameOver');
     Audio.music('gameover');
-    this.add.rectangle(GAME_W / 2, GAME_H / 2, GAME_W, GAME_H, 0x16060a);
-    title(this, 80, 'GAME OVER');
+
+    // Deep crimson bg
+    this.add.rectangle(GAME_W / 2, GAME_H / 2, GAME_W, GAME_H, 0x0e0208);
+    const g = this.add.graphics();
+    // Vignette: dark edges
+    g.fillStyle(0x000000, 0.45);
+    g.fillRect(0, 0, GAME_W, 28);
+    g.fillRect(0, GAME_H - 28, GAME_W, 28);
+
+    // Card
+    const CX = GAME_W / 2, CY = GAME_H / 2 + 4;
+    g.fillStyle(0x100408, 0.96);
+    g.fillRoundedRect(CX - 110, CY - 66, 220, 132, 10);
+    g.lineStyle(1.5, 0xe23b3b, 0.65);
+    g.strokeRoundedRect(CX - 110, CY - 66, 220, 132, 10);
+    g.fillStyle(0xe23b3b, 0.08);
+    g.fillRoundedRect(CX - 110, CY - 66, 220, 20, { tl: 10, tr: 10, bl: 0, br: 0 });
+
+    title(this, CY - 50, 'GAME OVER');
+
+    g.fillStyle(0xe23b3b, 0.25); g.fillRect(CX - 80, CY - 28, 160, 1);
+
     const continues = this.registry.get('continues') as number;
-    txt(this, GAME_W / 2, 115, `CONTINUES LEFT: ${continues}`, 10, '#9a9ab0');
+    txt(this, CX, CY - 12, continues > 0 ? `${continues} CONTINUE${continues > 1 ? 'S' : ''} REMAINING` : 'NO CONTINUES LEFT', 10, continues > 0 ? '#ffc83c' : '#555');
+
     const items = [];
     if (continues > 0) {
       items.push({
@@ -269,7 +311,7 @@ export class GameOverScene extends Phaser.Scene {
         this.scene.start('MainMenu');
       }
     });
-    new Menu(this, GAME_W / 2, 150, 24, items);
+    new Menu(this, CX, CY + 24, 26, items);
   }
 }
 

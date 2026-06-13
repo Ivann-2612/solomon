@@ -110,16 +110,15 @@ export default function MobileControls({ visible }: { visible: boolean }) {
           label="✖"
           style={{ right: 16 + a + 10, bottom: 20 + a * 1.6 + 12, width: a, height: a, fontSize: a * 0.52 }}
         />
-        {/* Pause - bottom center */}
+        {/* Pause - top-right, left of the fullscreen button */}
         <Btn
           action="pause"
           label="⏸"
           style={{
-            left: '50%',
-            transform: 'translateX(-50%)',
-            bottom: 8,
+            top: 10,
+            right: 64,
             width: 44 * s,
-            height: 36 * s,
+            height: 44 * s,
             fontSize: 18 * s,
           }}
         />

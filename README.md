@@ -1,4 +1,4 @@
-# solomon — Mystic Key
+# soli — Mystic Key
 
 A modern browser-based puzzle-platform arcade game inspired by classic 1980s magical puzzle games. Built per `Claude.md` spec.
 

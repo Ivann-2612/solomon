@@ -40,76 +40,75 @@ function makeParticle(scene: Phaser.Scene, key: string, color: string, size = 3)
 // ---- Entity sprites 8x8 (scale x2 = 16x16) ----
 
 // Dana – wizard, 12×16 pixmap (scale×2 = 24×32 sprite)
+// Hat is bright gold/yellow for instant readability against dark backgrounds.
 const DANA_IDLE = [
-  '....YY......',  // 0  hat tip sparkle (Y=light gold)
-  '....pp......',  // 1  hat tip
-  '...pPPp.....',  // 2  hat upper
-  '..pPPPPp....',  // 3  hat mid
-  '.pPPPPPPp...',  // 4  hat lower (widest)
-  '.GGGGGGGGo..',  // 5  gold brim, o=shadow right
-  '.KSSGoGSSK..',  // 6  face: G=gold eyes, o=dark nose
-  '.KSSSoSSSK..',  // 7  chin/face lower
-  'KKGGGGGGGGKK',  // 8  gold collar
-  'KPPpPPPpPPKK',  // 9  robe shoulders
-  'KPPpGGGpPPKK',  // 10 belt buckle (G=gold)
-  'KPPpPPPpPPKK',  // 11 robe lower
-  '.KPPpPPpPPK.',  // 12 robe hem
+  '....YY......',  // 0  hat sparkle
+  '....GG......',  // 1  hat tip gold
+  '...GYYGp....',  // 2  hat upper (Y=bright, p=shade)
+  '..GYYYYG....',  // 3  hat mid
+  '.GYYYYYYGp..',  // 4  hat lower (widest)
+  '.KGGGGGGGK..',  // 5  gold brim
+  '.KSSGKGSSKw.',  // 6  face: K=pupils, G=eye rings
+  '.KSSSSSSKwK.',  // 7  chin
+  'KKGGGGGGGKK.',  // 8  gold collar
+  'KPPpGGGpPPKK',  // 9  robe w/ gold belt buckle
+  'KPPPPPPPPPpK',  // 10 robe body
+  'KPPpPPPpPPpK',  // 11 robe w/ fold shadows
+  '.KPPPPPPPpK.',  // 12 robe hem
   '..KPPpPPPK..',  // 13 robe tail
-  '..KOK..KOK..',  // 14 boots (O=bright orange)
-  '..KoK..KoK..',  // 15 boot soles (o=dark orange)
+  '..KOK..KOK..',  // 14 boots (O=orange)
+  '..KoK..KoK..',  // 15 boot soles
 ];
 const DANA_WALK = [
   '....YY......',
-  '....pp......',
-  '...pPPp.....',
-  '..pPPPPp....',
-  '.pPPPPPPp...',
-  '.GGGGGGGGo..',
-  '.KSSGoGSSK..',
-  '.KSSSoSSSK..',
-  'KKGGGGGGGGKK',
-  'KPPpPPPpPPKK',
+  '....GG......',
+  '...GYYGp....',
+  '..GYYYYG....',
+  '.GYYYYYYGp..',
+  '.KGGGGGGGK..',
+  '.KSSGKGSSKw.',
+  '.KSSSSSSKwK.',
+  'KKGGGGGGGKK.',
   'KPPpGGGpPPKK',
-  'KPPpPPPpPPKK',
-  '.KPPpPPpPPK.',
+  'KPPPPPPPPPpK',
+  'KPPpPPPpPPpK',
+  '.KPPPPPPPpK.',
   '..KPPpPPPK..',
-  '..KOK...KoK.',  // stride: left foot forward (O=bright), right trailing (o=dark)
-  '..KoK...KKK.',  // soles: left down, right foot lifted
+  '..KOK...KoK.',  // stride
+  '..KoK...KKK.',
 ];
-// Dana crouching — hat still visible, body compressed into bottom half
 const DANA_DUCK = [
-  '............',  // 0  empty (hat hidden)
-  '....YY......',  // 1  hat tip
-  '....pp......',  // 2
-  '...pPPp.....',  // 3  hat body compressed
-  '..pPPPPp....',  // 4
-  '.GGGGGGGGo..',  // 5  gold brim (hat low)
-  '.KSSGoGSSK..',  // 6  face
-  '.KSSSoSSSK..',  // 7  chin
-  'KKGGGGGGGGKK',  // 8  gold collar
-  'KPPpGGGpPPKK',  // 9  belt only (no shoulder rows)
-  '.KPPpPPpPPK.',  // 10 robe squished
-  '..KPPpPPPK..',  // 11 robe hem
-  '..KOK..KOK..',  // 12 boots
-  '..KoK..KoK..',  // 13 boot soles
-  '............',  // 14
-  '............',  // 15
+  '............',
+  '....YY......',
+  '....GG......',
+  '...GYYGp....',
+  '..GYYYYG....',
+  '.KGGGGGGGK..',
+  '.KSSGKGSSKw.',
+  '.KSSSSSSKwK.',
+  'KKGGGGGGGKK.',
+  'KPPpGGGpPPKK',
+  '.KPPPPPPPpK.',
+  '..KPPpPPPK..',
+  '..KOK..KOK..',
+  '..KoK..KoK..',
+  '............',
+  '............',
 ];
-
 const DANA_CAST = [
   '....YY......',
-  '....pp......',
-  '...pPPp.....',
-  '..pPPPPp....',
-  '.pPPPPPPp...',
-  '.GGGGGGGGo..',
-  '.KSSGoGSSK..',
-  '.KSSSoSSSK..',
-  'KKGGGGGGGGKK',
-  'KPPpPPCCCCoo',  // arm extended: CCCC=cyan staff, oo=orange glow tip
-  'KPPpGGGpPPKK',  // belt same
-  'KPPpPPPpPPKK',
-  '.KPPpPPpPPK.',
+  '....GG......',
+  '...GYYGp....',
+  '..GYYYYG....',
+  '.GYYYYYYGp..',
+  '.KGGGGGGGK..',
+  '.KSSGKGSSKw.',
+  '.KSSSSSSKwK.',
+  'KKGGGGGGGKK.',
+  'KPPpPPCCCCOO',  // arm extended: C=cyan staff, O=orange glow tip
+  'KPPpGGGpPPpK',
+  'KPPpPPPpPPpK',
+  '.KPPPPPPPpK.',
   '..KPPpPPPK..',
   '..KOK..KOK..',
   '..KoK..KoK..',
@@ -378,50 +377,50 @@ const STONE = [
   'KKKKKKKKKKKK',
 ];
 
-// Magic block — amber with inner glow effect: N=amber, n=dark amber, F=highlight, Y=bright center
+// Magic block — cyan crystal with gold center glow
 const MAGIC = [
   'KKKKKKKKKKKK',
-  'KFNNNNNNNNnK',  // top: amber highlight
-  'KFNnnnnnnnNK',  // inner dark surround
-  'KFNnGGGGnnNK',  // gold inner frame
-  'KFNnGYYGnnNK',  // bright glow center (Y=light gold)
-  'KFNnGYYGnnNK',
-  'KFNnGYYGnnNK',
-  'KFNnGYYGnnNK',
-  'KFNnGGGGnnNK',
-  'KFNnnnnnnnNK',
-  'KFNNNNNNNNnK',  // bottom
+  'KCCCCCCCCCwK',  // top: cyan highlight
+  'KCCwwwwwwwCK',  // inner dark surround
+  'KCCwGGGGwwCK',  // gold inner frame
+  'KCCwGYYGwwCK',  // bright gold center
+  'KCCwGYYGwwCK',
+  'KCCwGYYGwwCK',
+  'KCCwGYYGwwCK',
+  'KCCwGGGGwwCK',
+  'KCCwwwwwwwCK',
+  'KCCCCCCCCCwK',  // bottom
   'KKKKKKKKKKKK',
 ];
 
-// Door closed — ornate arch, purple/dark
+// Door closed — ornate arch with gold trim
 const DOOR_CLOSED = [
-  '..pppppppp..',
-  '.pPPPPPPPPp.',
-  'pPPpppppppPp',
-  'pPpDDDDDDpPp',
-  'pPpDDDDDDpPp',
-  'pPpDKKKKDpPp',
-  'pPpDKKKKDpPp',
-  'pPpDDDDDDpPp',
-  'pPpDDDDDDpPp',
-  'pPpDDDDDDpPp',
-  'pPpDDDDDDpPp',
-  'pppppppppppp',
+  '..GGGGGGGG..',
+  '.GpppppppppG',
+  'GGppGGGGppGG',  // gold corner insets
+  'GpGKKKKKKGpG',  // gold border, dark panel
+  'GpGKDDDDKGpG',
+  'GpGKDGGDKGpG',  // gold inner detail
+  'GpGKDKKDKGpG',  // dark keyhole center
+  'GpGKDGGDKGpG',
+  'GpGKDDDDKGpG',
+  'GpGKKKKKKGpG',
+  'GpGpppppppGp',
+  'GGGGGGGGGGGG',
 ];
 const DOOR_OPEN = [
-  '..pppppppp..',
-  '.pGGGGGGGGp.',
-  'pGYYYYYYYYGp',
-  'pGYYYYYYYYGp',
-  'pGYYYYYYYYGp',
-  'pGYYYYYYYYGp',
-  'pGYYYYYYYYGp',
-  'pGYYYYYYYYGp',
-  'pGYYYYYYYYGp',
-  'pGYYYYYYYYGp',
-  'pGYYYYYYYYGp',
-  'pppppppppppp',
+  '..GGGGGGGG..',
+  '.GGYYYYYYGpG',
+  'GGYYCCCCYYGp',  // cyan inner glow
+  'GYYCCCCCCYYp',
+  'GYYCYYYYCYYp',
+  'GYYCYYYYCYYp',
+  'GYYCYYYYCYYp',
+  'GYYCYYYYCYYp',
+  'GYYCCCCCCYYp',
+  'GGYYCCCCYYGp',
+  '.GGYYYYYYGpG',
+  'GGGGGGGGGGGG',
 ];
 
 // Spawn portal — rotating magenta/purple ring
